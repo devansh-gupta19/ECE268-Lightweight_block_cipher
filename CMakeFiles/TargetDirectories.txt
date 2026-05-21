@@ -1,3 +1,0 @@
-C:/Users/Admin/Desktop/UCSD/Quarter3/ECE268/ECE268-Lightweight_block_cipher/CMakeFiles/block_cipher.dir
-C:/Users/Admin/Desktop/UCSD/Quarter3/ECE268/ECE268-Lightweight_block_cipher/CMakeFiles/edit_cache.dir
-C:/Users/Admin/Desktop/UCSD/Quarter3/ECE268/ECE268-Lightweight_block_cipher/CMakeFiles/rebuild_cache.dir
