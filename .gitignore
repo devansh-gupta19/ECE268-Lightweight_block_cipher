@@ -1,0 +1,15 @@
+# Python virtual environment
+.venv
+venv
+block_cipher
+
+# CMake cache and build files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Ninja build system files
+build.ninja
+.ninja_deps
+.ninja_log
+build/
