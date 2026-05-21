@@ -62,6 +62,22 @@ uint64_t d_inv_p_layer(uint64_t state) {
     return result;
 }
 
+// S-box layer: applies a 4-bit S-box to each of the 16 nibbles of the 64-bit state.
+__device__ __forceinline__
+uint64_t d_sbox_layer(uint64_t state, const uint8_t* sbox) {
+    uint64_t result = 0;
+    
+    #pragma unroll
+    for (int i = 0; i < 16; ++i) {
+        // Extract the i-th 4-bit nibble
+        uint8_t nibble = (state >> (i * 4)) & 0xF;
+        // Apply S-box and shift it back into the correct position
+        result |= ((uint64_t)sbox[nibble] << (i * 4));
+    }
+    
+    return result;
+}
+
 __global__
 void encrypt_kernel(const uint64_t* __restrict__ plaintexts,
                           uint64_t* __restrict__ ciphertexts,
