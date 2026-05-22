@@ -25,9 +25,11 @@
 and key schedules. Each cipher will be wrapped in CBC and CTR modes, validated against
 published test vectors, and benchmarked on GPU against a sequential CPU baseline and
 AES-128, with IoT/RFID as the target setting where AES is too expensive. \\
-\textbf{Status:} PRESENT-80 is complete on both CPU and GPU. All four official test
-vectors pass and GPU performance has been measured. SPECK-64, CBC/CTR modes, and the
-AES baseline are pending.
+\textbf{Status:} PRESENT-80 is complete on both CPU and GPU. The GPU implementation
+is written in pure CUDA C++ compiled directly with \texttt{nvcc}, rather than going
+through PyCUDA or CuPy wrappers. All four official test vectors pass and GPU
+performance has been measured. SPECK-64, CBC/CTR modes, and the AES baseline are
+pending.
 
 \section{Work Completed So Far}
 
@@ -44,14 +46,18 @@ AES baseline are pending.
         Decryption reverses those steps using INV\_SBOX and the inverse P-layer. The bit
         permutation formula is $p(j) = (16j) \bmod 63$ with bit 63 fixed in place.
 
-  \item \textbf{PRESENT-80 GPU:} A CUDA port of the CPU implementation. Round keys and
-        S-box tables go into \texttt{\_\_constant\_\_} memory so they are broadcast across
-        each warp without extra traffic. The encrypt and decrypt kernels each assign one
-        thread per cipher block. The P-layer helper is \texttt{\_\_device\_\_ \_\_forceinline\_\_}
-        with \texttt{\#pragma unroll} on the 63-iteration loop. Key expansion runs on the
-        CPU and the result is copied to constant memory before the kernel launches. The
-        test bench encrypts and then decrypts $2^{20}$ distinct blocks and verifies that
-        every output matches the original plaintext.
+  \item \textbf{PRESENT-80 GPU:} A pure-CUDA C++ port of the CPU implementation,
+        written directly against the CUDA Runtime API and built with \texttt{nvcc}
+        --- no PyCUDA, CuPy, or other higher-level wrapper sits between the host
+        code and the device. Round keys and S-box tables go into
+        \texttt{\_\_constant\_\_} memory so they are broadcast across each warp
+        without extra traffic. The encrypt and decrypt kernels each assign one
+        thread per cipher block. The P-layer helper is
+        \texttt{\_\_device\_\_ \_\_forceinline\_\_} with \texttt{\#pragma unroll}
+        on the 63-iteration loop. Key expansion runs on the CPU and the result is
+        copied to constant memory before the kernel launches. The test bench
+        encrypts and then decrypts $2^{20}$ distinct blocks and verifies that every
+        output matches the original plaintext.
 
   \item \textbf{Build system:} \texttt{CMakeLists.txt} uses a \texttt{USE\_CUDA} flag.
         \texttt{ON} builds \texttt{present80.cu} with \texttt{nvcc} targeting the native
