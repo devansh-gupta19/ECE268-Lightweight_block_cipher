@@ -47,7 +47,7 @@ AES baseline are pending.
   \item \textbf{PRESENT-80 GPU:} A CUDA port of the CPU implementation. Round keys and
         S-box tables go into \texttt{\_\_constant\_\_} memory so they are broadcast across
         each warp without extra traffic. The encrypt and decrypt kernels each assign one
-        thread per block. The P-layer helper is \texttt{\_\_device\_\_ \_\_forceinline\_\_}
+        thread per cipher block. The P-layer helper is \texttt{\_\_device\_\_ \_\_forceinline\_\_}
         with \texttt{\#pragma unroll} on the 63-iteration loop. Key expansion runs on the
         CPU and the result is copied to constant memory before the kernel launches. The
         test bench encrypts and then decrypts $2^{20}$ distinct blocks and verifies that
@@ -68,7 +68,7 @@ AES baseline are pending.
 
   \item \textbf{Completed:} All four PRESENT-80 spec vectors pass on the CPU build.
         GPU round-trip correctness was verified across all $2^{20}$ blocks. CPU and GPU
-        encrypt throughput were both measured on the same workload.
+        encryption throughput were both measured on the same workload.
 
   \item \textbf{Pending:} SPECK-64 and CBC/CTR tests have not been run because those
         components are not yet implemented.
@@ -83,7 +83,7 @@ AES baseline are pending.
 \toprule
 \textbf{Cipher / Platform} & \textbf{Block/Key} & \textbf{Enc/Dec} & \textbf{Spec Vectors} & \textbf{Throughput} \\
 \midrule
-PRESENT-80, CPU sequential & 64 / 80  & Round-trip OK & 4/4 Pass & $\approx$0.67~MB/s \\
+PRESENT-80, CPU sequential & 64 / 80  & Round-trip OK & 4/4 Pass & $\approx$0.64~MB/s \\
 PRESENT-80, GPU RTX~4070M  & 64 / 80  & Round-trip OK & 4/4 Pass & 1.07~GB/s enc, 1.43~GB/s dec \\
 SPECK-64, CPU              & 64 / --- & ---           & ---      & Not started \\
 SPECK-64, GPU              & 64 / --- & ---           & ---      & Not started \\
