@@ -25,8 +25,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -g")
 # --- Source Selection Logic ---
 
 if (USE_CUDA)
-    # CUDA Setup
-    set(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin/nvcc")
+    # CUDA Setup — find nvcc in PATH if not at the hardcoded path
+    find_program(NVCC_EXECUTABLE nvcc PATHS /usr/local/cuda/bin /usr/bin NO_DEFAULT_PATH)
+    if(NOT NVCC_EXECUTABLE)
+        find_program(NVCC_EXECUTABLE nvcc)
+    endif()
+    set(CMAKE_CUDA_COMPILER "${NVCC_EXECUTABLE}")
     find_package(CUDA 10.0 REQUIRED)
     set(CMAKE_CUDA_ARCHITECTURES native)
     enable_language(CUDA)
@@ -54,3 +58,11 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 
 # target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# AES baseline (CPU only, always built)
+add_executable(aes_baseline aes_baseline.cpp modes.cpp)
+target_compile_options(aes_baseline PRIVATE -O3 -Wall -std=c++17)
+
+# Modes test (CPU only, always built)
+add_executable(modes_test modes_test.cpp modes.cpp)
+target_compile_options(modes_test PRIVATE -O3 -Wall -std=c++17)

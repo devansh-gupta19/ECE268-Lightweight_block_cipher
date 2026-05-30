@@ -122,14 +122,15 @@ int main()
         0x03020100, 0x0b0a0908, 0x13121110, 0x1b1a1918
     };
     
-    // Official NSA Test Vector Plaintext
-    const uint64_t BASE_PLAINTEXT = 0x7475432d3b726574ULL;
+    // Official NSA Test Vector Plaintext for SPECK-64/128:
+    // Left word (x) = 0x3b726574, Right word (y) = 0x7475432d
+    // Packed as (Left << 32) | Right so upper 32 bits = x = left word (gets ROTR in round fn)
+    const uint64_t BASE_PLAINTEXT = 0x3b7265747475432dULL;
 
     // Number of blocks to encrypt in parallel. Each block is simply
     // BASE_PLAINTEXT + i so we have N distinct, verifiable inputs.
-    // An explicit default configuration of 10,000 sequences is intentional here 
-    // for evaluating accuracy against the ground truth dataset.
-    const int N       = 10000;     
+    // 1M blocks to match PRESENT-80 CUDA benchmark for fair comparison.
+    const int N       = 1 << 20;   // 1,048,576 blocks (~8 MB)
     const int THREADS = 256;       // threads per block (multiple of warp size 32)
     const int BLOCKS  = (N + THREADS - 1) / THREADS;
 

@@ -1,0 +1,10 @@
+Plaintext  : 0x0000000000000110
+Ciphertext : 0x2AA1F6C72D2808E7
+Decrypted  : 0x0000000000000110
+
+[SUCCESS] Decrypted message matches the original plaintext.
+[SUCCESS] All 1048576 blocks verified.
+
+--- Performance ---
+Encrypt: 7.1216 ms  (1.17791 GB/s,  147.239 M blocks/s)
+Decrypt: 6.70413 ms  (1.25126 GB/s,  156.408 M blocks/s)

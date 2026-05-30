@@ -138,9 +138,41 @@ const uint8_t Present80::INV_SBOX[16] = {
     0xB, 0x4, 0x6, 0x3, 0x0, 0x7, 0x9, 0xA
 };
 
+// --- Official Test Vector Validation ---
+
+struct TestVector { std::array<uint8_t,10> key; uint64_t pt; uint64_t expected_ct; };
+
+static bool run_official_tests() {
+    // PRESENT-80 test vectors from Bogdanov et al., CHES 2007, Appendix A
+    TestVector tvs[] = {
+        { {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}, 0x0000000000000000ULL, 0x5579C1387B228445ULL },
+        { {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}, 0x0000000000000000ULL, 0xE72C46C0F5945049ULL },
+        { {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}, 0xFFFFFFFFFFFFFFFFULL, 0xA112FFC72F68417BULL },
+        { {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}, 0xFFFFFFFFFFFFFFFFULL, 0x3333DCD3213210D2ULL },
+    };
+    bool all_pass = true;
+    std::cout << std::hex << std::uppercase << std::setfill('0');
+    std::cout << "=== PRESENT-80 Official Test Vectors ===\n";
+    for (int i = 0; i < 4; ++i) {
+        Present80 c(tvs[i].key);
+        uint64_t ct = c.encrypt(tvs[i].pt);
+        uint64_t dec = c.decrypt(ct);
+        bool ct_ok  = (ct  == tvs[i].expected_ct);
+        bool dec_ok = (dec == tvs[i].pt);
+        std::cout << "TV" << (i+1) << ": ct=" << std::setw(16) << ct
+                  << "  expected=" << std::setw(16) << tvs[i].expected_ct
+                  << "  " << (ct_ok && dec_ok ? "[PASS]" : "[FAIL]") << "\n";
+        if (!ct_ok || !dec_ok) all_pass = false;
+    }
+    std::cout << (all_pass ? "[ALL OFFICIAL VECTORS PASS]\n" : "[OFFICIAL VECTOR FAILURE]\n");
+    return all_pass;
+}
+
 // --- Execution & Verification ---
 
 int main() {
+    if (!run_official_tests()) return 1;
+    std::cout << "\n";
     // Standard PRESENT-80 Test Vector
     // Key: 0x00000000000000000000 (80 bits)
     // Plaintext: 0x0000000000000000 (64 bits)

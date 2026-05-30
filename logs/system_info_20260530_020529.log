@@ -1,0 +1,9 @@
+=== SYSTEM INFO ===
+timestamp_utc: 2026-05-30T02:05:29Z
+gpu: NVIDIA GeForce RTX 4070 Laptop GPU, 8.9
+cpu: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics
+cpu_mhz: 3792.926
+g++: g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+nvcc: Cuda compilation tools, release 12.0, V12.0.140
+cmake: cmake version 3.28.3
+os: 6.6.87.2-microsoft-standard-WSL2

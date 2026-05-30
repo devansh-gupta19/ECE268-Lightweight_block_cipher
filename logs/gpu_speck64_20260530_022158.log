@@ -1,0 +1,10 @@
+Plaintext  : 0x3B7265747475432D
+Ciphertext : 0x8C6FA548454E028B
+Decrypted  : 0x3B7265747475432D
+
+[SUCCESS] Ciphertext matches reference vector and decrypted message matches the original plaintext.
+[SUCCESS] All 10000 blocks verified.
+
+--- Performance ---
+Encrypt: 0.747648 ms  (0.107002 GB/s,  13.3753 M blocks/s)
+Decrypt: 0.12288 ms  (0.651042 GB/s,  81.3802 M blocks/s)
