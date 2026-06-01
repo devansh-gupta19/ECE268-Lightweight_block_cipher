@@ -101,6 +101,7 @@ public:
         state ^= round_keys[0];
         return state;
     }
+    const uint64_t* round_keys_ptr() const { return round_keys; }
 };
 
 inline const uint8_t Present80::SBOX[16] = {

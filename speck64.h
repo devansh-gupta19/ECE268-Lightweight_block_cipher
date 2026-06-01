@@ -43,4 +43,5 @@ public:
         for (int i = ROUNDS - 1; i >= 0; --i)
             DR(Pt[1], Pt[0], round_keys[i]);
     }
+    const uint32_t* round_keys_ptr() const { return round_keys; }
 };

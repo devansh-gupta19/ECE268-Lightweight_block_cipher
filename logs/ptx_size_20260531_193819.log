@@ -1,0 +1,17 @@
+=== PTX / Cubin Size Report ===
+timestamp: 2026-06-01T02:38:19Z
+arch: sm_89
+nvcc: 12.0
+---
+
+--- present80.cu ---
+present80_ptx_bytes: 620295
+present80_ptx_lines: 17111
+present80_cubin_bytes: 243880
+present80_sass_instructions: 30000
+
+--- speck64.cu ---
+speck64_ptx_bytes: 13666
+speck64_ptx_lines: 422
+speck64_cubin_bytes: 8488
+speck64_sass_instructions: 592

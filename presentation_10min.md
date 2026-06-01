@@ -5,7 +5,7 @@
 
 ## Instructions for Claude Design
 
-Create a **13-slide academic presentation deck** for a **10-minute recorded video** (ECE268 GPU Cryptography, UCSD, due June 12, 2026). Style: dark-background, technical, publication-quality. Include all charts, diagrams, and tables exactly as specified. Exact numbers must not be altered. Use log-scale axes when PRESENT and SPECK appear together (94× gap makes linear unreadable). Font: technical sans-serif or monospace. All slides follow the same template: headline in large text at top, content below, slide number bottom-center, ECE268 UCSD watermark bottom-right.
+Create a **13-slide academic presentation deck** for a **10-minute recorded video** (ECE268 GPU Cryptography, UCSD, due June 12, 2026). Style: dark-background, technical, publication-quality. Include all charts, diagrams, and tables exactly as specified. Exact numbers must not be altered. Use log-scale axes when PRESENT and SPECK appear together (~108× gap makes linear unreadable). Font: technical sans-serif or monospace. All slides follow the same template: headline in large text at top, content below, slide number bottom-center, ECE268 UCSD watermark bottom-right.
 
 **Timing target:** ~45 seconds per slide on average. Slides 4, 9, 12, 13 require ~60 seconds each; Slides 1 and 5 are 15–20 seconds each.
 
@@ -63,12 +63,26 @@ Create a **13-slide academic presentation deck** for a **10-minute recorded vide
 
 **Modes (all three ciphers):** CTR (counter mode, parallelizable) + CBC (cipher-block chaining, sequential encrypt)
 
-**Code complexity:**
-- PRESENT-80: ~220 SLOC | SPECK-64/128: ~120 SLOC | AES-128: ~380 SLOC
+**Code complexity (SLOC — kernel-only vs full file):**
+
+| Cipher | CPU kernel SLOC | GPU kernel SLOC | Full file SLOC |
+|--------|-----------------|-----------------|----------------|
+| PRESENT-80 | ~85 | ~70 | ~220 |
+| SPECK-64/128 | ~35 | ~30 | ~120 |
+| AES-128 | ~120 | N/A | ~380 |
+
+(Full file SLOC includes test/bench/main; kernel-only is the cipher core itself.)
+
+**Compiled GPU size (sm_89, nvcc --ptx / --cubin):**
+
+| Cipher | PTX size | PTX lines | Cubin size | SASS instructions |
+|--------|----------|-----------|------------|-------------------|
+| PRESENT-80 | 620 KB | 17,111 | 244 KB | 30,000 |
+| SPECK-64/128 | 14 KB | 422 | 8.5 KB | 592 |
 
 **Rules:** No third-party crypto libraries. No OpenSSL. No AES-NI intrinsics. Pure C++ + CUDA.
 
-**Visual Design:** Three-column cipher card strip with structural icon per cipher. Green checkmarks next to each validation entry. Bottom strip: "6/6 CTR+CBC roundtrip tests pass."
+**Visual Design:** Three-column cipher card strip with structural icon per cipher. Green checkmarks next to each validation entry. Bottom strip: "6/6 CTR+CBC roundtrip tests pass." Add a small "PTX lines" callout contrasting 17,111 (PRESENT) vs 422 (SPECK).
 
 **Speaker time:** ~40 seconds.
 
@@ -132,10 +146,14 @@ SubBytes  (8-bit S-box)  +  ShiftRows  +  MixColumns (GF(2^8) matrix)  +  AddRou
 2. 10,000-call warm-up before every timed loop
 3. Key schedule: 10 batches × 10,000 expansions → mean ± stddev in μs and cycles
 4. Single-block latency: 1,000,000 calls → median RDTSC cycles
+   - Corrected (compiler elision fixed via volatile sink): PRESENT-80 **36,632 cycles** (~9.7 µs/64-bit block) | SPECK-64/128 **114 cycles** (~30 ns/64-bit block) | AES-128 **4,408 cycles** (~1.16 µs/128-bit block)
 5. Bulk ECB: 1,048,576 blocks (8 MB / 16 MB) → wall-time via `std::chrono` → MB/s + cycles/byte
 6. CTR/CBC: same block count through mode wrappers
+7. Input-size sweep: 1 KB → 64 KB → 1 MB → 16 MB → 64 MB; CPU measured directly; GPU: 5 CUDA-event trials per size, report mean ± stddev GB/s
 
-**Caveat acknowledged:** PRESENT/SPECK key schedule cycles are unreliable (compiler elides unused result in test loop). AES KS measurement is valid. Only AES KS cycles should be taken as a data point.
+**GPU key-schedule methodology:** Both CUDA implementations compute the key schedule on the CPU, then upload it to GPU `__constant__` memory via `cudaMemcpyToSymbol`. Kernel timing does NOT include the key schedule — it is amortized over all blocks (one upload per key).
+
+**Key-schedule timing:** all three ciphers reliable (compiler elision fixed via volatile sink — return value of each cipher call XOR'd into a `volatile uint64_t`). PRESENT: **21,247 cycles** | SPECK: **184 cycles** | AES: **665 cycles**. Single-block latency (corrected): PRESENT **36,632 cycles** | SPECK **114 cycles** | AES **4,408 cycles**.
 
 **Visual Design:** Flow diagram: "Standard test vector" → [PASS] → "10K warmup" → "Measure (RDTSC + chrono)" → "Log to file". Boxes with green/red gating. Small note: "All logs in /logs/*.log — downloadable from GitHub."
 
@@ -151,43 +169,67 @@ SubBytes  (8-bit S-box)  +  ShiftRows  +  MixColumns (GF(2^8) matrix)  +  AddRou
 
 | Cipher | Cyc/byte | ECB MB/s | CTR MB/s | CBC MB/s | KS cycles | RK bytes |
 |--------|----------|----------|----------|----------|-----------|----------|
-| PRESENT-80 | 1,496 | 2.4 | 0.69 | 0.67 | ~1.5* | 256 |
-| SPECK-64/128 | 16 | 225.5 | 209.6 | 148.5 | <1* | 108 |
-| AES-128 | 340 | 10.6 | 10.4 | 10.8 | 553 | 176 |
+| PRESENT-80 | 1,492 | 2.43 | 0.72 | 0.69 | **21,247** | 256 |
+| SPECK-64/128 | 13.81 | 262.6 | 220.5 | 152.6 | **184** | 108 |
+| AES-128 | 325.3 | 11.14 | 10.91 | 11.02 | **665** | 176 |
 
-*KS cycles for PRESENT/SPECK unreliable — see Slide 5 caveat.
+**CPU throughput vs input size (ECB MB/s — nearly flat, all cipher state is cache-resident):**
+
+| Cipher | 1 KB | 64 KB | 1 MB | 16 MB | 64 MB |
+|--------|------|-------|------|-------|-------|
+| PRESENT-80 | 2.22 | 2.21 | 2.18 | 2.20 | 2.24 |
+| SPECK-64/128 | 250.8 | 227.9 | 241.8 | 242.9 | 197.8 |
+| AES-128 | 11.31 | 11.01 | 10.94 | 10.69 | 10.81 |
 
 **Key ratios:**
-- SPECK vs PRESENT (ECB): **225.5 / 2.4 = 94×** faster
-- SPECK vs AES (ECB): **225.5 / 10.6 = 21×** faster
-- AES vs PRESENT (ECB): **10.6 / 2.4 = 4×** faster
-- AES KS vs SPECK KS: **553 cyc vs ~0** — matters for IoT re-keying
+- SPECK vs PRESENT (ECB): **262.6 / 2.43 = ~108×** faster
+- SPECK vs AES (ECB): **262.6 / 11.14 = ~23.6×** faster
+- AES vs PRESENT (ECB): **11.14 / 2.43 = ~4.6×** faster
+- AES KS vs SPECK KS: **665 cyc vs 184 cyc** — matters for IoT re-keying
 
-**Visual Design:** Full table on left. Right: log-scale horizontal bar chart of ECB MB/s (PRESENT at 2.4 barely visible; SPECK at 225.5 towers). Annotate "94×" and "21×" gaps. Note: "*PRESENT was designed for hardware — this is expected behavior.*"
+**Pre-generated figures (use directly):**
+- ECB log bar: ![CPU ECB log](figures/fig1_cpu_ecb_log.png)
+- Modes (ECB/CTR/CBC) grouped bar: ![CPU modes](figures/fig2_cpu_modes_log.png)
+- Throughput vs input size: ![CPU sweep](figures/fig3_cpu_sweep.png)
 
-**Speaker time:** ~60 seconds. Walk row by row. Call out the PRESENT result explicitly: *"2.4 MB/s on a 3.8 GHz CPU. That is not a bug — that is what PRESENT is. It was designed for silicon."*
+**Visual Design:** Full table on left. Right: log-scale horizontal bar chart of ECB MB/s (PRESENT at 2.43 barely visible; SPECK at 262.6 towers). Annotate "~108×" and "~23.6×" gaps. Note: "*PRESENT was designed for hardware — this is expected behavior.*" Below, a small flat-line chart showing CPU throughput is constant across input sizes (cache-resident).
+
+**Speaker time:** ~60 seconds. Walk row by row. Call out the PRESENT result explicitly: *"2.43 MB/s on a 3.8 GHz CPU. That is not a bug — that is what PRESENT is. It was designed for silicon."*
 
 ---
 
 ## Slide 7: GPU Results — Parallel Acceleration
 
-**Headline:** GPU lifts both ciphers into the GB/s regime; SPECK still wins absolute throughput by ~9×.
+**Headline:** GPU lifts both ciphers into the GB/s regime; at full occupancy SPECK wins absolute throughput by 56×.
 
-**GPU benchmark (RTX 4070 Laptop, sm_89, 1M blocks = 8 MB, CUDA events):**
+**GPU benchmark (RTX 4070 Laptop, sm_89, 64 MB baseline = 8.4M blocks, CUDA events, 5 trials):**
 
-| Cipher | Enc time (ms) | Enc GB/s (kernel) | Dec GB/s (kernel) | GPU Speedup vs CPU ECB |
-|--------|---------------|-------------------|-------------------|------------------------|
-| PRESENT-80 | 6.89 | **1.22** | 1.38 | **~508×** |
-| SPECK-64/128 | 0.75 | **11.16** | 92.0* | **~49×** |
+| Cipher | 64MB Enc GB/s | 64MB Dec GB/s | GPU Speedup vs CPU (64MB) |
+|--------|---------------|---------------|----------------------------|
+| PRESENT-80 | 1.857 | 1.862 | **~829×** |
+| SPECK-64/128 | 104.3 | 106.4 | **~527×** |
 
-*SPECK decrypt shows 92 GB/s — likely cache-warm artifact from preceding encrypt pass. Encrypt figure (11.16 GB/s) is the representative number.
+**GPU throughput vs input size (Enc GB/s, mean of 5 trials):**
+
+| Cipher | 1 KB | 64 KB | 1 MB | 16 MB | 64 MB |
+|--------|------|-------|------|-------|-------|
+| PRESENT-80 | 0.0148 | 1.301 | 1.693 | 1.794 | 1.857 |
+| SPECK-64/128 | 0.0165 | 3.050 | 42.31 | 106.3 | 104.3 |
 
 **Interpretation:**
-- PRESENT's 508× GPU speedup is real but misleading: CPU baseline was 2.4 MB/s, so the absolute GPU result (1.22 GB/s) is still 9× behind SPECK
-- SPECK's 49× speedup against a fast 225.5 MB/s CPU baseline → absolute 11.16 GB/s
-- Both benefit from CUDA parallelism; ARX operations (SPECK) are more SIMT-friendly (pure register ops)
+- At ≤ 64 KB both ciphers are dominated by kernel-launch overhead (~0.015–3 GB/s) — neither saturates the GPU
+- At 1 MB+ SPECK takes off to 100+ GB/s while PRESENT saturates at ~1.86 GB/s because PRESENT is compute-bound per thread
+- SPECK's absolute advantage is now **56× (104 / 1.86)** at full GPU utilization, not 9×. The smaller gap at 8 MB (11 vs 1.22 = 9×) was because SPECK had not reached peak occupancy
+- PRESENT's **829×** GPU speedup is real but reflects an extremely slow CPU baseline (**2.24 MB/s**); SPECK's **527×** is against a fast **197.8 MB/s** baseline
+- Decrypt numbers are now 5-trial averaged and consistent (SPECK 106.4 vs enc 104.3 GB/s — coherent, no cache-warm artifact)
 
-**Visual Design:** Grouped bar chart. X-axis: PRESENT / SPECK. For each: two bars (CPU GB/s converted from MB/s, GPU GB/s). Note the absolute values. Annotate GPU speedup labels above each pair. Add a small note: "SPECK decrypt outlier excluded."
+**Parallelism scaling:** SPECK's throughput scales **6,000× from 1 KB to 64 MB**; PRESENT scales **124×** and saturates — SPECK benefits far more from parallelism because its compute-light ARX rounds can fully utilize all SMs at large batch sizes.
+
+**Pre-generated figures (use directly):**
+- GPU sweep log-log: ![GPU sweep](figures/fig4_gpu_sweep_loglog.png)
+- GPU peak bar (enc + dec): ![GPU peak](figures/fig5_gpu_peak_bar.png)
+
+**Visual Design:** Grouped bar chart of 64MB peak GB/s (PRESENT vs SPECK, enc + dec). Plus a log-log line chart "Throughput vs Input Size" showing SPECK ramping from 0.0165 to 104.3 GB/s and PRESENT flattening at ~1.86 GB/s. Annotate GPU speedup labels (~829×, ~527×).
 
 **Speaker time:** ~50 seconds.
 
@@ -203,13 +245,13 @@ SubBytes  (8-bit S-box)  +  ShiftRows  +  MixColumns (GF(2^8) matrix)  +  AddRou
 - Each block: Encrypt(nonce ‖ counter_i) XOR plaintext_i
 - **Independent per block** → all N blocks launch in parallel on GPU
 - Natural fit for CUDA: 1 thread per block, no dependencies
-- CTR/ECB gap: SPECK **209.6 vs 225.5 MB/s** (7% overhead from mode wrapper), PRESENT **0.69 vs 2.4 MB/s** (71% — mode overhead dominates slow cipher)
+- CTR/ECB gap: SPECK **220.5 vs 262.6 MB/s** (16% overhead from mode wrapper), PRESENT **0.72 vs 2.43 MB/s** (70% — mode overhead dominates slow cipher)
 
 **CBC mode (Cipher Block Chaining):**
 - Encrypt: C_i = Encrypt(P_i XOR C_{i-1}) — **sequential dependency** in encrypt direction
 - Decrypt: P_i = Decrypt(C_i) XOR C_{i-1} — **parallel** (needs only previous ciphertext)
 - Cannot fully parallelize CBC encrypt on GPU
-- CBC vs ECB on CPU: SPECK **148.5 vs 225.5 MB/s** (34% drop)
+- CBC vs ECB on CPU: SPECK **152.6 vs 262.6 MB/s** (42% drop)
 
 **Recommendation for IoT bulk transfer:** Use **CTR mode** (or GCM derivative for authenticated encryption). Never use ECB for anything other than benchmarking.
 
@@ -245,6 +287,9 @@ SubBytes  (8-bit S-box)  +  ShiftRows  +  MixColumns (GF(2^8) matrix)  +  AddRou
 - Lightweight saves gates/cycles by using smaller keys, shorter blocks, simpler primitives
 - Each saving comes with a corresponding security reduction
 - *The right choice is the lightest cipher that satisfies your threat model* — not the lightest cipher
+
+**Pre-generated figure (use directly):**
+![Security radar chart](figures/fig10_security_radar.png)
 
 **Visual Design:** 5-axis radar chart (pentagon). Axes: Throughput (software), Key-size security, Block-size security, Hardware area (inverted: smaller = better), Cryptanalysis maturity. One polygon per cipher (3 overlapping). Visually shows no single cipher dominates all axes.
 
@@ -302,6 +347,23 @@ uint32_t y = (uint32_t)(state & 0xFFFFFFFF); // y = 0x7475432d = RIGHT word ← 
 | PRESENT-80 | **~220 SLOC** | Bit-permutation and key-schedule require more code |
 | AES-128 | **~380 SLOC** | S-box, Rcon, MixColumns all need explicit lookup tables |
 
+**Static / constant memory footprint:**
+| Cipher | CPU S-box | CPU Round keys | GPU `__constant__` total |
+|--------|-----------|----------------|--------------------------|
+| PRESENT-80 | 16+16=32 B | 256 B | **288 B** |
+| SPECK-64/128 | 0 B | 108 B | **108 B** |
+| AES-128 | 256+256+10=522 B | 176 B | N/A (CPU only) |
+
+Both GPU ciphers fit entirely within `__constant__` memory — not a bottleneck (64 KB constant bank).
+
+**Compiled GPU code size:**
+| Cipher | PTX size | Cubin size | SASS instructions |
+|--------|----------|------------|-------------------|
+| PRESENT-80 | 620 KB | 244 KB | 30,000 |
+| SPECK-64/128 | **14 KB** | **8.5 KB** | **592** |
+
+PRESENT requires **45× more compiled GPU code** than SPECK — the unrolled bit-permutation is visible in the instruction stream.
+
 **Round-key memory footprint:**
 | Cipher | Round keys | Bytes |
 |--------|------------|-------|
@@ -314,7 +376,11 @@ uint32_t y = (uint32_t)(state & 0xFFFFFFFF); // y = 0x7475432d = RIGHT word ← 
 - PRESENT's bit-permutation and SPECK's clean ARX are both auditable; AES MixColumns is harder
 - A firmware engineer maintaining an IoT device prefers SPECK's 120 SLOC over AES's 380
 
-**Visual Design:** Dual horizontal bar chart. Top: SLOC (SPECK shortest). Bottom: Round-key bytes (SPECK smallest). Annotate "auditable in 10 lines" near SPECK. Annotate "table-heavy" near AES.
+**Pre-generated figures (use directly):**
+- Key schedule cycles: ![KS cycles](figures/fig7_ks_cycles.png)
+- Gate equivalents: ![Gate equivalents](figures/fig9_gate_equivalents.png)
+
+**Visual Design:** Dual horizontal bar chart. Top: SLOC (SPECK shortest). Bottom: Round-key bytes (SPECK smallest). Add a third bar pair for PTX size (PRESENT 620 KB vs SPECK 14 KB). Annotate "auditable in 10 lines" near SPECK. Annotate "table-heavy" near AES, and "45× more PTX" near PRESENT.
 
 **Speaker time:** ~40 seconds.
 
@@ -329,13 +395,13 @@ uint32_t y = (uint32_t)(state & 0xFFFFFFFF); // y = 0x7475432d = RIGHT word ← 
 | Limitation | What We Did | What We Didn't Do | Impact |
 |------------|-------------|-------------------|--------|
 | Side-channel analysis | Functional correctness only | Timing, cache, power leakage not measured | PRESENT table lookups are especially exposed |
-| AES-NI comparison | Software AES only (340 cyc/byte) | Hardware AES-NI: ~1–2 cyc/byte typical | Our AES baseline is pessimistic for modern CPUs |
-| Key schedule cycles | AES KS: 553 cyc (reliable); PRESENT/SPECK KS: unreliable (compiler elides) | Cycle-accurate microbenchmark with `volatile` | PRESENT KS may not actually be 1.5 cycles |
+| AES-NI comparison | Software AES only (325.3 cyc/byte) | Hardware AES-NI: ~1–2 cyc/byte typical | Our AES baseline is pessimistic for modern CPUs |
+| Key schedule cycles | All KS cycles now reliable (volatile sink fix): PRESENT 21,247 \| SPECK 184 \| AES 665 | — | No longer a limitation — all three KS measurements valid |
 | Platform diversity | RTX 4070 Laptop + Ryzen 7 8845HS only | No A100, no Jetson, no RP2040 | Results may differ significantly on other hardware |
 | SIMD optimization | Pure scalar C++ | No AVX2/NEON hand-tuning | SPECK likely 2–4× faster with SIMD |
 | Authenticated modes | CTR + CBC only | No GCM, no AEAD | Real IoT needs integrity, not just confidentiality |
 
-**Visual Design:** Clean 5-row limitation card. Each row: warning icon, limitation name, one-sentence implication. No apology — these are scope decisions, not failures.
+**Visual Design:** Clean limitation card. Each row: warning icon, limitation name, one-sentence implication. No apology — these are scope decisions, not failures.
 
 **Speaker time:** ~60 seconds. Graders reward calibrated confidence.
 
@@ -351,10 +417,10 @@ uint32_t y = (uint32_t)(state & 0xFFFFFFFF); // y = 0x7475432d = RIGHT word ← 
 
 | Need | Recommendation | Key metric |
 |------|----------------|------------|
-| MCU / embedded software (no crypto HW) | **SPECK-64/128** | 225.5 MB/s CPU, 21× AES |
+| MCU / embedded software (no crypto HW) | **SPECK-64/128** | 262.6 MB/s CPU, 23.6× AES |
 | ASIC / RFID / <2,000 GE budget | **PRESENT-80** | ~1,570 GE (Bogdanov CHES-2007) |
-| GPU bulk encryption (IoT→cloud) | **SPECK-64/128** | 11.16 GB/s (RTX 4070) |
-| Frequent re-keying / re-initialization | **SPECK-64/128** | KS ~0 cyc vs AES 553 cyc |
+| GPU bulk encryption (IoT→cloud) | **SPECK-64/128** | 104 GB/s (RTX 4070 at 64MB batch) |
+| Frequent re-keying / re-initialization | **SPECK-64/128** | KS 184 cyc vs AES 665 cyc |
 | General secure default (server/desktop) | **AES-128** | Best analyzed; use AES-NI |
 
 **One-sentence takeaway:**
@@ -386,11 +452,10 @@ uint32_t y = (uint32_t)(state & 0xFFFFFFFF); // y = 0x7475432d = RIGHT word ← 
 - **Total runtime:** 10 minutes across 13 slides (~45 sec/slide average)
 
 ## Sources (actual log files — all numbers above drawn from these)
-- CPU benchmarks: `logs/cpu_bench_20260530_022059.log`
-- GPU PRESENT-80: `logs/gpu_present80_20260530_022135.log`
-- GPU SPECK-64 (1M blocks): `logs/gpu_speck64_1M_20260530_022203.log`
-- Modes test: `logs/modes_test_20260530_022227.log`
-- Summary: `logs/benchmark_summary_20260530_022200.log`
+- CPU benchmark including KS fix and input-size sweep: `logs/cpu_sweep_fixed_20260531_195149.log`
+- GPU PRESENT-80 sweep (5 trials × 5 sizes): `logs/gpu_present80_sweep_20260531_193816.log`
+- GPU SPECK-64 sweep (5 trials × 5 sizes): `logs/gpu_speck64_sweep_20260531_193818.log`
+- PTX/cubin sizes (sm_89, nvcc 12.0): `logs/ptx_size_20260531_193819.log`
 - AES test vectors: NIST FIPS 197, Appendix B and C
 - PRESENT test vectors: Bogdanov et al., CHES 2007, Appendix A
 - SPECK test vector: Beaulieu et al., NSA 2013, Table B.2

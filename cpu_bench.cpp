@@ -19,6 +19,14 @@
 #include "aes128.h"
 #include "modes.h"
 
+// Volatile sink prevents compiler from eliding key-schedule construction
+static volatile uint64_t g_ks_sink = 0;
+
+// Input-size sweep parameters
+static const size_t SWEEP_BYTES[]  = {1024, 65536, 1048576, 16777216, 67108864};
+static const char*  SWEEP_LABELS[] = {"1KB", "64KB", "1MB", "16MB", "64MB"};
+static const int    N_SWEEP = 5;
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 static std::string get_hostname() {
@@ -124,10 +132,13 @@ template<typename EncFn>
 static uint64_t bench_single_block(EncFn enc_fn) {
     const int COUNT = 1000000;
     std::vector<uint64_t> cyc(COUNT);
-    // warmup
-    for (int i = 0; i < 10000; i++) enc_fn(i);
+    // warmup — volatile sink prevents elision of cipher calls
+    for (int i = 0; i < 10000; i++) g_ks_sink ^= (uint64_t)enc_fn(i);
     for (int i = 0; i < COUNT; i++) {
-        uint64_t c0 = rdtsc(); enc_fn(i); uint64_t c1 = rdtsc();
+        uint64_t c0 = rdtsc();
+        auto _r = enc_fn(i);
+        uint64_t c1 = rdtsc();
+        g_ks_sink ^= (uint64_t)_r;  // outside timing window; prevents elision
         cyc[i] = c1 - c0;
     }
     return median_cycles(cyc);
@@ -149,6 +160,34 @@ static void bench_bulk_ecb(EncFn enc_fn, size_t block_bytes,
     double total_bytes = N * block_bytes;
     mbps = (total_bytes / (1024.0*1024.0)) / sec;
     cpb  = (double)(c1 - c0) / total_bytes;
+}
+
+// Benchmark ECB across 5 input sizes; prints sweep[<SIZE>]_throughput_MBps and _cycles_per_byte
+template<typename EncFn>
+static void bench_ecb_sweep(EncFn enc_fn, size_t block_bytes) {
+    const size_t MAX_BYTES = SWEEP_BYTES[N_SWEEP - 1]; // 64 MB
+    std::vector<uint8_t> in(MAX_BYTES, 0xA5), out(MAX_BYTES);
+    for (int s = 0; s < N_SWEEP; s++) {
+        size_t bytes   = SWEEP_BYTES[s];
+        size_t nblocks = bytes / block_bytes;
+        size_t N_REPS  = std::min((size_t)100000, MAX_BYTES / bytes);
+        // warmup
+        for (size_t j = 0; j < nblocks; j++)
+            enc_fn(in.data() + j*block_bytes, out.data() + j*block_bytes, j);
+        // timed run
+        Timer t; t.start();
+        uint64_t c0 = rdtsc();
+        for (size_t rep = 0; rep < N_REPS; rep++)
+            for (size_t j = 0; j < nblocks; j++)
+                enc_fn(in.data() + j*block_bytes, out.data() + j*block_bytes, j);
+        uint64_t c1 = rdtsc();
+        double total = (double)(bytes * N_REPS);
+        double mbps  = (total / (1024.0*1024.0)) / t.elapsed_sec();
+        double cpb   = (double)(c1 - c0) / total;
+        std::cout << std::fixed << std::setprecision(4);
+        std::cout << "sweep[" << SWEEP_LABELS[s] << "]_throughput_MBps: " << mbps << "\n";
+        std::cout << "sweep[" << SWEEP_LABELS[s] << "]_cycles_per_byte: "  << cpb  << "\n";
+    }
 }
 
 // ── Print header ──────────────────────────────────────────────────────────────
@@ -175,7 +214,11 @@ static void bench_present80() {
     double ks_us_mean, ks_us_std, ks_cyc_mean;
     bench_keyschedule([&](int seed) {
         std::array<uint8_t,10> k = base_key; k[9] ^= (uint8_t)seed;
-        Present80 c(k); (void)c;
+        Present80 c(k);
+        const uint64_t* rk = c.round_keys_ptr();
+        uint64_t acc = 0;
+        for (int q = 0; q < 32; ++q) acc ^= rk[q];
+        g_ks_sink ^= acc;
     }, 10, 10000, ks_us_mean, ks_us_std, ks_cyc_mean);
 
     // Create cipher for single-block + bulk tests
@@ -220,6 +263,9 @@ static void bench_present80() {
     std::cout << "gpu_end_to_end_GBps: N/A\n";
     std::cout << "gpu_kernel_only_GBps: N/A\n";
     std::cout << "test_vector_status: PASS\n";
+    bench_ecb_sweep([&](const uint8_t* in, uint8_t* out, size_t) {
+        present_enc(in, out, &cipher);
+    }, 8);
     std::cout << "\n";
 }
 
@@ -230,7 +276,11 @@ static void bench_speck64() {
     double ks_us_mean, ks_us_std, ks_cyc_mean;
     bench_keyschedule([&](int seed) {
         uint32_t k[4]; std::memcpy(k, base_key, 16); k[3] ^= (uint32_t)seed;
-        Speck64_128 c; c.expandKey(k); (void)c;
+        Speck64_128 c; c.expandKey(k);
+        const uint32_t* rk = c.round_keys_ptr();
+        uint32_t acc = 0;
+        for (int q = 0; q < 27; ++q) acc ^= rk[q];
+        g_ks_sink ^= (uint64_t)acc;
     }, 10, 10000, ks_us_mean, ks_us_std, ks_cyc_mean);
 
     Speck64_128 cipher; cipher.expandKey(base_key);
@@ -270,6 +320,9 @@ static void bench_speck64() {
     std::cout << "gpu_end_to_end_GBps: N/A\n";
     std::cout << "gpu_kernel_only_GBps: N/A\n";
     std::cout << "test_vector_status: PASS\n";
+    bench_ecb_sweep([&](const uint8_t* in, uint8_t* out, size_t) {
+        speck_enc(in, out, &cipher);
+    }, 8);
     std::cout << "\n";
 }
 
@@ -281,7 +334,11 @@ static void bench_aes128() {
     double ks_us_mean, ks_us_std, ks_cyc_mean;
     bench_keyschedule([&](int seed) {
         uint8_t k[16]; std::memcpy(k, base_key, 16); k[15] ^= (uint8_t)seed;
-        AES128 c(k); (void)c;
+        AES128 c(k);
+        const uint8_t* rk = c.round_keys_flat();
+        uint64_t acc = 0;
+        for (int q = 0; q < 11*16; ++q) acc ^= (uint64_t)rk[q];
+        g_ks_sink ^= acc;
     }, 10, 10000, ks_us_mean, ks_us_std, ks_cyc_mean);
 
     AES128 cipher(base_key);
@@ -322,6 +379,9 @@ static void bench_aes128() {
     std::cout << "gpu_end_to_end_GBps: N/A\n";
     std::cout << "gpu_kernel_only_GBps: N/A\n";
     std::cout << "test_vector_status: PASS\n";
+    bench_ecb_sweep([&](const uint8_t* in, uint8_t* out, size_t) {
+        aes_enc(in, out, &cipher);
+    }, 16);
     std::cout << "\n";
 }
 

@@ -103,6 +103,7 @@ private:
 public:
     AES128() = default;
     AES128(const uint8_t key[16]) { key_expansion(key); }
+    const uint8_t* round_keys_flat() const { return &round_keys[0][0]; }
 
     void encrypt(const uint8_t in[16], uint8_t out[16]) const {
         uint8_t s[16];
