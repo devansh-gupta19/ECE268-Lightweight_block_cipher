@@ -3,6 +3,8 @@
 #include <bitset>
 #include <array>
 #include <iomanip>
+#include <chrono>
+#include <cmath>
 
 class Present80 {
 private:
@@ -126,6 +128,21 @@ public:
         state ^= round_keys[0];
         return state;
     }
+
+    // Batch helpers used by the sweep
+    void encrypt_batch(const uint64_t* plaintexts,
+                       uint64_t*       ciphertexts,
+                       int             n) const {
+        for (int i = 0; i < n; ++i)
+            ciphertexts[i] = encrypt(plaintexts[i]);
+    }
+ 
+    void decrypt_batch(const uint64_t* ciphertexts,
+                       uint64_t*       plaintexts,
+                       int             n) const {
+        for (int i = 0; i < n; ++i)
+            plaintexts[i] = decrypt(ciphertexts[i]);
+    }
 };
 
 const uint8_t Present80::SBOX[16] = {
@@ -137,6 +154,27 @@ const uint8_t Present80::INV_SBOX[16] = {
     0x5, 0xE, 0xF, 0x8, 0xC, 0x1, 0x2, 0xD, 
     0xB, 0x4, 0x6, 0x3, 0x0, 0x7, 0x9, 0xA
 };
+
+// ─── Timing helpers ───────────────────────────────────────────────────────────
+ 
+using Clock    = std::chrono::high_resolution_clock;
+using DSeconds = std::chrono::duration<double>;          // seconds as double
+using DMillis  = std::chrono::duration<double, std::milli>;
+ 
+// Returns elapsed milliseconds between two time_points
+static inline double elapsed_ms(Clock::time_point start, Clock::time_point end) {
+    return DMillis(end - start).count();
+}
+ 
+// Computes mean and population stddev over an array of doubles
+static void compute_stats(const double* v, int n, double& mean, double& stddev) {
+    mean = 0.0;
+    for (int i = 0; i < n; ++i) mean += v[i];
+    mean /= n;
+    double sq = 0.0;
+    for (int i = 0; i < n; ++i) sq += (v[i] - mean) * (v[i] - mean);
+    stddev = std::sqrt(sq / n);
+}
 
 // --- Official Test Vector Validation ---
 
@@ -173,28 +211,104 @@ static bool run_official_tests() {
 int main() {
     if (!run_official_tests()) return 1;
     std::cout << "\n";
-    // Standard PRESENT-80 Test Vector
-    // Key: 0x00000000000000000000 (80 bits)
-    // Plaintext: 0x0000000000000000 (64 bits)
-    // Expected Ciphertext: 0x5579C1387B228445
-    std::array<uint8_t, 10> key = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23};
-    uint64_t plaintext = 0x0000000000000110ULL;
-    
+    const int    N_SWEEP  = 5;
+    const int    N_TRIALS = 5;
+ 
+    // Mirror exactly the same sweep sizes as the CUDA benchmark
+    const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
+    const char*  SWEEP_LABELS[5] = {"1KB", "64KB", "1MB", "16MB", "64MB"};
+    const int    N_MAX = (int)(SWEEP_BYTES[4] / 8);   // 8,388,608 blocks (64 MB)
+ 
+    // ── CPU info block (mirrors gpu info block in the CUDA file) ──────────
+    std::cout << "\n=== PRESENT-80 cpu info ===\n";
+    std::cout << std::dec;
+    std::cout << "round_keys_bytes:  " << (32 * sizeof(uint64_t)) << "\n";
+    std::cout << "sbox_bytes:        " << 16 << "\n";
+    std::cout << "inv_sbox_bytes:    " << 16 << "\n";
+    std::cout << "n_trials_per_size: " << N_TRIALS << "\n";
+ 
+    // ── 2. Key + cipher instance (key schedule is a one-time setup cost,
+    //       excluded from all timed regions just as in the CUDA version) ───
+    std::array<uint8_t, 10> key = {
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23
+    };
+    const uint64_t BASE_PLAINTEXT = 0x0000000000000110ULL;
     Present80 cipher(key);
-    
-    uint64_t ciphertext = cipher.encrypt(plaintext);
-    uint64_t decrypted  = cipher.decrypt(ciphertext);
-
-    std::cout << std::hex << std::uppercase << std::setfill('0');
-    std::cout << "Plaintext  : 0x" << std::setw(16) << plaintext << "\n";
-    std::cout << "Ciphertext : 0x" << std::setw(16) << ciphertext << "\n";
-    std::cout << "Decrypted  : 0x" << std::setw(16) << decrypted << "\n";
-
-    if (plaintext == decrypted) {
-        std::cout << "\n[SUCCESS] Decrypted message matches the original test vector.\n";
-    } else {
-       std::cout << "\n[ERROR] Decrypted message mismatch.\n";
+ 
+    // ── 3. Allocate buffers at N_MAX (reused for all sweep sizes) ─────────
+    uint64_t* h_plain     = new uint64_t[N_MAX];
+    uint64_t* h_cipher    = new uint64_t[N_MAX];
+    uint64_t* h_decrypted = new uint64_t[N_MAX];
+    for (int i = 0; i < N_MAX; ++i)
+        h_plain[i] = BASE_PLAINTEXT + (uint64_t)i;
+ 
+    // ── 4. CPU sweep: 5 sizes × 5 trials each ─────────────────────────────
+    std::cout << std::fixed << std::setprecision(4);
+    std::cout << "\n=== PRESENT-80 cpu sweep ===\n";
+ 
+    for (int s = 0; s < N_SWEEP; s++) {
+        int n = (int)(SWEEP_BYTES[s] / 8);
+ 
+        std::cout << "\n=== cpu_sweep[" << SWEEP_LABELS[s] << "] size: " << n << " blocks ===\n";
+ 
+        // Run the batch 100× for inputs smaller than 1 MB to dilute the
+        // overhead of clock_gettime and OS scheduling jitter, then divide.
+        int iters = (SWEEP_BYTES[s] < 1024 * 1024) ? 100 : 1;
+ 
+        double enc_ms_v[N_TRIALS], dec_ms_v[N_TRIALS];
+ 
+        for (int tr = 0; tr < N_TRIALS; tr++) {
+            // Encrypt
+            auto enc_start = Clock::now();
+            for (int it = 0; it < iters; it++)
+                cipher.encrypt_batch(h_plain, h_cipher, n);
+            auto enc_end = Clock::now();
+            enc_ms_v[tr] = elapsed_ms(enc_start, enc_end) / iters;
+ 
+            // Decrypt (feeds from the last encrypt's output)
+            auto dec_start = Clock::now();
+            for (int it = 0; it < iters; it++)
+                cipher.decrypt_batch(h_cipher, h_decrypted, n);
+            auto dec_end = Clock::now();
+            dec_ms_v[tr] = elapsed_ms(dec_start, dec_end) / iters;
+        }
+ 
+        // ── Correctness check for this size (all blocks, last trial) ─────
+        bool all_ok = true;
+        for (int i = 0; i < n; ++i) {
+            if (h_decrypted[i] != h_plain[i]) {
+                std::cerr << std::dec << "[ERROR] Block " << i
+                          << " mismatch at size " << SWEEP_LABELS[s] << "!\n";
+                all_ok = false;
+                break;
+            }
+        }
+        if (all_ok)
+            std::cout << std::dec << "[SUCCESS] All " << n << " blocks verified.\n";
+ 
+        // ── Stats + print ───────────────
+        double enc_mean, enc_std, dec_mean, dec_std;
+        compute_stats(enc_ms_v, N_TRIALS, enc_mean, enc_std);
+        compute_stats(dec_ms_v, N_TRIALS, dec_mean, dec_std);
+ 
+        double bytes_d    = (double)n * 8.0;
+        double enc_gbps_s = bytes_d / (enc_mean * 1e-3) / 1e9;
+        double dec_gbps_s = bytes_d / (dec_mean * 1e-3) / 1e9;
+ 
+        std::cout << std::fixed << std::setprecision(4);
+        std::cout << "encryption_ms_mean:   " << enc_mean   << "\n";
+        std::cout << "encryption_ms_stddev: " << enc_std    << "\n";
+        std::cout << "encryption_GBps:      " << enc_gbps_s << "\n";
+        std::cout << "decryption_ms_mean:   " << dec_mean   << "\n";
+        std::cout << "decryption_ms_stddev: " << dec_std    << "\n";
+        std::cout << "decryption_GBps:      " << dec_gbps_s << "\n";
+        std::cout << "\n";
     }
+ 
+    // ── 5. Cleanup ────────────────────────────────────────────────────────
+    delete[] h_plain;
+    delete[] h_cipher;
+    delete[] h_decrypted;
 
     return 0;
 }

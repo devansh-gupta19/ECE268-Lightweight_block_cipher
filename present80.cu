@@ -179,29 +179,28 @@ void generate_round_keys(const std::array<uint8_t, 10>& key,
 
 int main()
 {
+    const int    N_SWEEP   = 5;
+    const int    N_TRIALS  = 5;
+    const int    THREADS   = 256;
+
+    const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
+    const char*  SWEEP_LABELS[5] = {"1KB","64KB","1MB","16MB","64MB"};
+    const int    N_MAX     = (int)(SWEEP_BYTES[4] / 8);  // 8,388,608 blocks (64 MB)
+
     // ── GPU info block ────────────────────────────────────────────────────
     std::cout << "=== PRESENT-80 gpu info ===\n";
-    std::cout << "const_mem_round_keys_bytes: 256\n";
-    std::cout << "const_mem_sbox_bytes: 16\n";
-    std::cout << "const_mem_inv_sbox_bytes: 16\n";
-    std::cout << "const_mem_total_bytes: 288\n";
-    std::cout << "key_schedule_location: host_precomputed\n";
-    std::cout << "key_schedule_upload: cudaMemcpyToSymbol\n";
-    std::cout << "key_schedule_size_bytes: 256\n";
-    std::cout << "n_trials_per_size: 5\n";
+    std::cout << "const_mem_round_keys_bytes: " << sizeof(d_round_keys) << "\n";
+    std::cout << "const_mem_sbox_bytes: " << sizeof(d_SBOX) << "\n";
+    std::cout << "const_mem_inv_sbox_bytes: " << sizeof(d_INV_SBOX) << "\n";
+    std::cout << "const_mem_total_bytes: " << (sizeof(d_round_keys) + sizeof(d_SBOX) + sizeof(d_INV_SBOX)) << "\n";
+    std::cout << "key_schedule_size_bytes: " << sizeof(d_round_keys) << "\n";
+    std::cout << "n_trials_per_size: " << N_TRIALS << "\n";
 
     // ── Parameters ────────────────────────────────────────────────────────
     std::array<uint8_t, 10> key = {
         0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23
     };
     const uint64_t BASE_PLAINTEXT = 0x0000000000000110ULL;
-
-    const int    N_SWEEP   = 5;
-    const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
-    const char*  SWEEP_LABELS[5] = {"1KB","64KB","1MB","16MB","64MB"};
-    const int    N_MAX     = (int)(SWEEP_BYTES[4] / 8);  // 8,388,608 blocks (64 MB)
-    const int    N_TRIALS  = 5;
-    const int    THREADS   = 256;
 
     // ── 1. Key schedule on CPU → upload to GPU constant memory ────────────
     uint64_t h_round_keys[32];
@@ -230,57 +229,8 @@ int main()
     encrypt_kernel<<<blocks_max, THREADS>>>(d_plain, d_cipher, N_MAX);
     CUDA_CHECK(cudaDeviceSynchronize());
 
-    // ── 4. Verification at N_MAX ──────────────────────────────────────────
-    CUDA_CHECK(cudaEventRecord(t_start));
-    encrypt_kernel<<<blocks_max, THREADS>>>(d_plain, d_cipher, N_MAX);
-    CUDA_CHECK(cudaEventRecord(t_end));
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaEventSynchronize(t_end));
-    float enc_ms_full = 0;
-    CUDA_CHECK(cudaEventElapsedTime(&enc_ms_full, t_start, t_end));
-
-    CUDA_CHECK(cudaEventRecord(t_start));
-    decrypt_kernel<<<blocks_max, THREADS>>>(d_cipher, d_decrypted, N_MAX);
-    CUDA_CHECK(cudaEventRecord(t_end));
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaEventSynchronize(t_end));
-    float dec_ms_full = 0;
-    CUDA_CHECK(cudaEventElapsedTime(&dec_ms_full, t_start, t_end));
-
-    CUDA_CHECK(cudaMemcpy(h_cipher,    d_cipher,    N_MAX * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(h_decrypted, d_decrypted, N_MAX * sizeof(uint64_t), cudaMemcpyDeviceToHost));
-
-    std::cout << std::hex << std::uppercase << std::setfill('0');
-    std::cout << "Plaintext  : 0x" << std::setw(16) << h_plain[0]     << "\n";
-    std::cout << "Ciphertext : 0x" << std::setw(16) << h_cipher[0]    << "\n";
-    std::cout << "Decrypted  : 0x" << std::setw(16) << h_decrypted[0] << "\n";
-    if (h_plain[0] == h_decrypted[0])
-        std::cout << "\n[SUCCESS] Decrypted message matches the original plaintext.\n";
-    else
-        std::cout << "\n[ERROR]   Decrypted message mismatch.\n";
-
-    bool all_ok = true;
-    for (int i = 0; i < N_MAX; ++i) {
-        if (h_decrypted[i] != h_plain[i]) {
-            std::cerr << std::dec << "[ERROR] Block " << i << " mismatch!\n";
-            all_ok = false;
-            break;
-        }
-    }
-    if (all_ok)
-        std::cout << std::dec << "[SUCCESS] All " << N_MAX << " blocks verified.\n";
-
-    // Legacy performance summary (N_MAX = 64 MB)
-    double enc_gbps_full = ((double)N_MAX * 8.0) / (enc_ms_full * 1e-3) / 1e9;
-    double dec_gbps_full = ((double)N_MAX * 8.0) / (dec_ms_full * 1e-3) / 1e9;
-    std::cout << "\n--- Performance (64MB baseline) ---\n"
-              << "Encrypt: " << enc_ms_full << " ms  ("
-              << enc_gbps_full << " GB/s)\n"
-              << "Decrypt: " << dec_ms_full << " ms  ("
-              << dec_gbps_full << " GB/s)\n";
-
-    // ── 5. GPU sweep: 5 sizes × 5 trials each ─────────────────────────────
-    std::cout << "\n=== PRESENT-80 gpu sweep ===\n";
+    // ── 4. GPU sweep: 5 sizes × 5 trials each ─────────────────────────────
+    std::cout << "\n=== PRESENT-80 GPU sweep ===\n";
     std::cout << std::fixed << std::setprecision(4);
 
     // inline stats helper (mean + population stddev over float vector)
@@ -296,23 +246,48 @@ int main()
     for (int s = 0; s < N_SWEEP; s++) {
         int n    = (int)(SWEEP_BYTES[s] / 8);
         int blks = (n + THREADS - 1) / THREADS;
+        float enc_ms_v[N_TRIALS], dec_ms_v[N_TRIALS];
+        float temp_ms;
 
-        float enc_ms_v[5], dec_ms_v[5];
+        std::cout << "\n=== gpu_sweep[" << SWEEP_LABELS[s] << "] size: " << n << " blocks ===\n";
+
+        // Run more iterations for smaller payloads to drown out driver latency
+        int iters = (n * 8 < 1024 * 1024) ? 100 : 1;
         for (int tr = 0; tr < N_TRIALS; tr++) {
             CUDA_CHECK(cudaEventRecord(t_start));
-            encrypt_kernel<<<blks, THREADS>>>(d_plain, d_cipher, n);
+            for (int it = 0; it < iters; it++) {
+                encrypt_kernel<<<blks, THREADS>>>(d_plain, d_cipher, n);
+            }
             CUDA_CHECK(cudaEventRecord(t_end));
             CUDA_CHECK(cudaGetLastError());
             CUDA_CHECK(cudaEventSynchronize(t_end));
-            CUDA_CHECK(cudaEventElapsedTime(&enc_ms_v[tr], t_start, t_end));
+            CUDA_CHECK(cudaEventElapsedTime(&temp_ms, t_start, t_end));
+            enc_ms_v[tr] = temp_ms / iters;  // Average per iteration
 
             CUDA_CHECK(cudaEventRecord(t_start));
-            decrypt_kernel<<<blks, THREADS>>>(d_cipher, d_decrypted, n);
+            for (int it = 0; it < iters; it++) {
+                decrypt_kernel<<<blks, THREADS>>>(d_cipher, d_decrypted, n);
+            }
             CUDA_CHECK(cudaEventRecord(t_end));
             CUDA_CHECK(cudaGetLastError());
             CUDA_CHECK(cudaEventSynchronize(t_end));
-            CUDA_CHECK(cudaEventElapsedTime(&dec_ms_v[tr], t_start, t_end));
+            CUDA_CHECK(cudaEventElapsedTime(&temp_ms, t_start, t_end));
+            dec_ms_v[tr] = temp_ms / iters;  // Average per iteration
         }
+
+        // Get results from the device and verift the correctness of encryption + decryption
+        CUDA_CHECK(cudaMemcpy(h_cipher,    d_cipher,    n * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+        CUDA_CHECK(cudaMemcpy(h_decrypted, d_decrypted, n * sizeof(uint64_t), cudaMemcpyDeviceToHost));
+        bool all_ok = true;
+        for (int i = 0; i < n; ++i) {
+            if (h_decrypted[i] != h_plain[i]) {
+                std::cerr << std::dec << "[ERROR] Block " << i << " mismatch!\n";
+                all_ok = false;
+                break;
+            }
+        }
+        if (all_ok)
+            std::cout << std::dec << "[SUCCESS] All " << n << " blocks verified.\n";
 
         double enc_mean, enc_std, dec_mean, dec_std;
         compute_stats(enc_ms_v, N_TRIALS, enc_mean, enc_std);
@@ -322,15 +297,19 @@ int main()
         double enc_gbps_s = bytes_d / (enc_mean * 1e-3) / 1e9;
         double dec_gbps_s = bytes_d / (dec_mean * 1e-3) / 1e9;
 
-        std::cout << "gpu_sweep[" << SWEEP_LABELS[s] << "]_enc_ms_mean: "   << enc_mean   << "\n";
-        std::cout << "gpu_sweep[" << SWEEP_LABELS[s] << "]_enc_ms_stddev: " << enc_std    << "\n";
-        std::cout << "gpu_sweep[" << SWEEP_LABELS[s] << "]_enc_GBps: "      << enc_gbps_s << "\n";
-        std::cout << "gpu_sweep[" << SWEEP_LABELS[s] << "]_dec_ms_mean: "   << dec_mean   << "\n";
-        std::cout << "gpu_sweep[" << SWEEP_LABELS[s] << "]_dec_ms_stddev: " << dec_std    << "\n";
-        std::cout << "gpu_sweep[" << SWEEP_LABELS[s] << "]_dec_GBps: "      << dec_gbps_s << "\n";
+
+        std::cout << "encryption_ms_mean:   "      << enc_mean   << "\n";
+        std::cout << "encryption_ms_stddev: "      << enc_std    << "\n";
+        std::cout << "encryption_GBps:      "      << enc_gbps_s << "\n";
+        std::cout << "decryption_ms_mean:   "      << dec_mean   << "\n";
+        std::cout << "decryption_ms_stddev: "      << dec_std    << "\n";
+        std::cout << "decryption_GBps:      "      << dec_gbps_s << "\n";
+
+        // Add an extra blank line to separate sizes in terminal output
+        std::cout << "\n";
     }
 
-    // ── 6. Cleanup ────────────────────────────────────────────────────────
+    // Cleanup
     delete[] h_plain;
     delete[] h_cipher;
     delete[] h_decrypted;

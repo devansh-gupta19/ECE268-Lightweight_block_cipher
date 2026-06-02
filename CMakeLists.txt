@@ -8,10 +8,11 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # --- Configuration Options ---
 
 # Option 1: Hardware Acceleration (CUDA vs CPU)
-option(USE_CUDA "Compile option to use CUDA" ON)
+option(USE_CUDA "Compile option to use CUDA" OFF)
 
 # Option 2: Cipher Selection (PRESENT80 vs SPECK64)
-set(CIPHER_SELECTION "PRESENT80" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64)")
+#set(CIPHER_SELECTION "PRESENT80" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64)")
+set(CIPHER_SELECTION "SPECK64" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64)")
 # This property restricts the GUI/ccmake input to these specific strings
 set_property(CACHE CIPHER_SELECTION PROPERTY STRINGS "PRESENT80" "SPECK64")
 
@@ -19,12 +20,12 @@ set_property(CACHE CIPHER_SELECTION PROPERTY STRINGS "PRESENT80" "SPECK64")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-# Note: Replaced -O4 with -O3 as GCC/Clang do not have an -O4 optimization level
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -g")
 
 # --- Source Selection Logic ---
 
 if (USE_CUDA)
+    set(BUILD_TYPE_MSG "GPU (CUDA)")
     # CUDA Setup — find nvcc in PATH if not at the hardcoded path
     find_program(NVCC_EXECUTABLE nvcc PATHS /usr/local/cuda/bin /usr/bin NO_DEFAULT_PATH)
     if(NOT NVCC_EXECUTABLE)
@@ -43,6 +44,7 @@ if (USE_CUDA)
     endif()
 
 else()
+    set(BUILD_TYPE_MSG "CPU")
     # Baseline C++ Source Routing
     if (CIPHER_SELECTION STREQUAL "SPECK64")
         set(SOURCES ./speck64.cpp)
@@ -50,6 +52,15 @@ else()
         set(SOURCES ./present80.cpp)
     endif()
 endif()
+
+# --- Build Configuration Message ---
+message(STATUS "========================================")
+message(STATUS "Block Cipher Build Configuration")
+message(STATUS "========================================")
+message(STATUS "Build Type:     ${BUILD_TYPE_MSG}")
+message(STATUS "Cipher:         ${CIPHER_SELECTION}")
+message(STATUS "========================================")
+
 
 # --- Build Target ---
 
