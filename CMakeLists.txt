@@ -10,11 +10,11 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # Option 1: Hardware Acceleration (CUDA vs CPU)
 option(USE_CUDA "Compile option to use CUDA" OFF)
 
-# Option 2: Cipher Selection (PRESENT80 vs SPECK64)
-#set(CIPHER_SELECTION "PRESENT80" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64)")
-set(CIPHER_SELECTION "SPECK64" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64)")
+# Option 2: Cipher Selection (PRESENT80 vs SPECK64 vs AES)
+#set(CIPHER_SELECTION "PRESENT80" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64 or AES)")
+set(CIPHER_SELECTION "AES" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64 or AES)")
 # This property restricts the GUI/ccmake input to these specific strings
-set_property(CACHE CIPHER_SELECTION PROPERTY STRINGS "PRESENT80" "SPECK64")
+set_property(CACHE CIPHER_SELECTION PROPERTY STRINGS "PRESENT80" "SPECK64" "AES")
 
 # --- Compiler Settings ---
 
@@ -38,18 +38,22 @@ if (USE_CUDA)
 
     # CUDA Source Routing
     if (CIPHER_SELECTION STREQUAL "SPECK64")
-        set(SOURCES ./speck64.cu)
-    else()
-        set(SOURCES ./present80.cu)
+        set(SOURCES ./SPECK64_128/speck64.cu)
+    elseif (CIPHER_SELECTION STREQUAL "PRESENT80")
+        set(SOURCES ./PRESENT80/present80.cu)
+    else () # AES
+        set(SOURCES ./AES/aes.cu)
     endif()
 
 else()
     set(BUILD_TYPE_MSG "CPU")
     # Baseline C++ Source Routing
     if (CIPHER_SELECTION STREQUAL "SPECK64")
-        set(SOURCES ./speck64.cpp)
-    else()
-        set(SOURCES ./present80.cpp)
+        set(SOURCES ./SPECK64_128/speck64.cpp)
+    elseif (CIPHER_SELECTION STREQUAL "PRESENT80")
+        set(SOURCES ./PRESENT80/present80.cpp)
+    else () # AES
+        set(SOURCES ./AES/aes.cpp)
     endif()
 endif()
 
@@ -67,13 +71,3 @@ message(STATUS "========================================")
 # Add the executable
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
-
-# target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-# AES baseline (CPU only, always built)
-add_executable(aes_baseline aes_baseline.cpp modes.cpp)
-target_compile_options(aes_baseline PRIVATE -O3 -Wall -std=c++17)
-
-# Modes test (CPU only, always built)
-add_executable(modes_test modes_test.cpp modes.cpp)
-target_compile_options(modes_test PRIVATE -O3 -Wall -std=c++17)
