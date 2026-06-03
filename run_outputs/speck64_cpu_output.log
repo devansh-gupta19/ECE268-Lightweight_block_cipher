@@ -15,48 +15,48 @@ n_trials_per_size: 5
 [SUCCESS] All 128 blocks verified.
 encryption_ms_mean:   0.0009
 encryption_ms_stddev: 0.0001
-encryption_MBps:      1170.8611
-decryption_ms_mean:   0.0011
+encryption_MBps:      1167.7314
+decryption_ms_mean:   0.0012
 decryption_ms_stddev: 0.0000
-decryption_MBps:      905.3342
+decryption_MBps:      880.2363
 
 
 === cpu_sweep[64KB] size: 8192 blocks ===
 [SUCCESS] All 8192 blocks verified.
-encryption_ms_mean:   0.0526
-encryption_ms_stddev: 0.0001
-encryption_MBps:      1244.9270
-decryption_ms_mean:   0.0720
+encryption_ms_mean:   0.0535
+encryption_ms_stddev: 0.0002
+encryption_MBps:      1225.8169
+decryption_ms_mean:   0.0728
 decryption_ms_stddev: 0.0003
-decryption_MBps:      910.3890
+decryption_MBps:      899.7817
 
 
 === cpu_sweep[1MB] size: 131072 blocks ===
 [SUCCESS] All 131072 blocks verified.
-encryption_ms_mean:   0.9172
-encryption_ms_stddev: 0.1511
-encryption_MBps:      1143.2167
-decryption_ms_mean:   1.2141
-decryption_ms_stddev: 0.1288
-decryption_MBps:      863.6434
+encryption_ms_mean:   0.9547
+encryption_ms_stddev: 0.2021
+encryption_MBps:      1098.3223
+decryption_ms_mean:   1.2350
+decryption_ms_stddev: 0.1322
+decryption_MBps:      849.0251
 
 
 === cpu_sweep[16MB] size: 2097152 blocks ===
 [SUCCESS] All 2097152 blocks verified.
-encryption_ms_mean:   14.6706
-encryption_ms_stddev: 2.2923
-encryption_MBps:      1143.5933
-decryption_ms_mean:   19.6483
-decryption_ms_stddev: 2.0985
-decryption_MBps:      853.8780
+encryption_ms_mean:   14.8295
+encryption_ms_stddev: 2.3243
+encryption_MBps:      1131.3395
+decryption_ms_mean:   19.8637
+decryption_ms_stddev: 2.1262
+decryption_MBps:      844.6161
 
 
 === cpu_sweep[64MB] size: 8388608 blocks ===
 [SUCCESS] All 8388608 blocks verified.
-encryption_ms_mean:   58.2605
-encryption_ms_stddev: 7.0681
-encryption_MBps:      1151.8760
-decryption_ms_mean:   78.1278
-decryption_ms_stddev: 6.9114
-decryption_MBps:      858.9629
+encryption_ms_mean:   59.2430
+encryption_ms_stddev: 6.8820
+encryption_MBps:      1132.7720
+decryption_ms_mean:   78.9013
+decryption_ms_stddev: 7.1434
+decryption_MBps:      850.5420
 

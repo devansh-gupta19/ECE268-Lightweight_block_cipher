@@ -13,9 +13,9 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE  
--- Found CUDA: /usr/local/cuda (found suitable version "12.8", minimum required is "10.0") 
--- The CUDA compiler identification is NVIDIA 12.8.93
+-- Found Threads: TRUE
+-- Found CUDA: /usr/local/cuda (found suitable version "12.8", minimum required is "10.0")
+-- The CUDA compiler identification is NVIDIA 12.8.93 with host compiler GNU 13.3.0
 -- Detecting CUDA compiler ABI info
 -- Detecting CUDA compiler ABI info - done
 -- Check for working CUDA compiler: /usr/local/cuda/bin/nvcc - skipped
@@ -24,7 +24,7 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 -- ========================================
 -- Block Cipher - Building All Targets
 -- ========================================
--- Building 7 executables:
+-- Building 8 executables:
 --   1. present80_cpu
 --   2. present80_gpu
 --   3. speck64_cpu
@@ -32,7 +32,8 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 --   5. aes_cpu
 --   6. aes_gpu
 --   7. modes_test
+--   8. cpu_bench
 -- ========================================
--- Configuring done (5.5s)
+-- Configuring done (5.0s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/devansh/ECE268-Lightweight_block_cipher/build

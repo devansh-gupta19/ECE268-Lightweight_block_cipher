@@ -44,6 +44,7 @@ EXECUTABLES=(
     "aes_cpu"
     "aes_gpu"
     "modes_test"
+    "cpu_bench"
 )
 
 echo "========================================"

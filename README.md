@@ -72,10 +72,11 @@ make -j$(nproc)
 
 ## Executables
 
-The build creates 7 executables:
+The build creates 8 executables:
 
 | Executable | Description |
 |-----------|-------------|
+| `cpu_bench` | Comprehensive CPU benchmarking for all three ciphers (PRESENT-80, SPECK-64/128, AES) with metrics collection |
 | `present80_cpu` | PRESENT-80 CPU implementation with benchmarks |
 | `present80_gpu` | PRESENT-80 GPU/CUDA implementation with benchmarks |
 | `speck64_cpu` | SPECK-64/128 CPU implementation with benchmarks |
