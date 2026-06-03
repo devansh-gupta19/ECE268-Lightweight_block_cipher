@@ -1,0 +1,62 @@
+=== SPECK-64/128 Official Test Vectors ===
+TV1: ct=8C6FA548 454E028B  expected=8C6FA548 454E028B  [PASS]
+[ALL OFFICIAL VECTORS PASS]
+
+=== SPECK-64/128 cpu info ===
+block_size_bytes:  8
+key_size_bytes:    16
+rounds:            27
+round_keys_bytes:  108
+n_trials_per_size: 5
+
+=== SPECK-64/128 cpu sweep ===
+
+=== cpu_sweep[1KB] size: 128 blocks ===
+[SUCCESS] All 128 blocks verified.
+encryption_ms_mean:   0.0009
+encryption_ms_stddev: 0.0001
+encryption_MBps:      1170.8611
+decryption_ms_mean:   0.0011
+decryption_ms_stddev: 0.0000
+decryption_MBps:      905.3342
+
+
+=== cpu_sweep[64KB] size: 8192 blocks ===
+[SUCCESS] All 8192 blocks verified.
+encryption_ms_mean:   0.0526
+encryption_ms_stddev: 0.0001
+encryption_MBps:      1244.9270
+decryption_ms_mean:   0.0720
+decryption_ms_stddev: 0.0003
+decryption_MBps:      910.3890
+
+
+=== cpu_sweep[1MB] size: 131072 blocks ===
+[SUCCESS] All 131072 blocks verified.
+encryption_ms_mean:   0.9172
+encryption_ms_stddev: 0.1511
+encryption_MBps:      1143.2167
+decryption_ms_mean:   1.2141
+decryption_ms_stddev: 0.1288
+decryption_MBps:      863.6434
+
+
+=== cpu_sweep[16MB] size: 2097152 blocks ===
+[SUCCESS] All 2097152 blocks verified.
+encryption_ms_mean:   14.6706
+encryption_ms_stddev: 2.2923
+encryption_MBps:      1143.5933
+decryption_ms_mean:   19.6483
+decryption_ms_stddev: 2.0985
+decryption_MBps:      853.8780
+
+
+=== cpu_sweep[64MB] size: 8388608 blocks ===
+[SUCCESS] All 8388608 blocks verified.
+encryption_ms_mean:   58.2605
+encryption_ms_stddev: 7.0681
+encryption_MBps:      1151.8760
+decryption_ms_mean:   78.1278
+decryption_ms_stddev: 6.9114
+decryption_MBps:      858.9629
+

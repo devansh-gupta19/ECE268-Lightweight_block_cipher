@@ -1,0 +1,59 @@
+=== AES-128 gpu info ===
+const_mem_round_keys_bytes: 176
+const_mem_sbox_bytes:       256
+const_mem_inv_sbox_bytes:   256
+const_mem_total_bytes:      688
+key_schedule_size_bytes:    176
+n_trials_per_size:          5
+
+=== AES-128 GPU sweep ===
+
+=== gpu_sweep[1KB] size: 64 blocks ===
+[SUCCESS] All 64 blocks verified.
+encryption_ms_mean:   0.0116
+encryption_ms_stddev: 0.0000
+encryption_MBps:      88.3548
+decryption_ms_mean:   0.0117
+decryption_ms_stddev: 0.0001
+decryption_MBps:      87.5350
+
+
+=== gpu_sweep[64KB] size: 4096 blocks ===
+[SUCCESS] All 4096 blocks verified.
+encryption_ms_mean:   0.0204
+encryption_ms_stddev: 0.0005
+encryption_MBps:      3217.4647
+decryption_ms_mean:   0.0189
+decryption_ms_stddev: 0.0000
+decryption_MBps:      3475.1210
+
+
+=== gpu_sweep[1MB] size: 65536 blocks ===
+[SUCCESS] All 65536 blocks verified.
+encryption_ms_mean:   0.0543
+encryption_ms_stddev: 0.0288
+encryption_MBps:      19300.2711
+decryption_ms_mean:   0.0381
+decryption_ms_stddev: 0.0010
+decryption_MBps:      27526.8810
+
+
+=== gpu_sweep[16MB] size: 1048576 blocks ===
+[SUCCESS] All 1048576 blocks verified.
+encryption_ms_mean:   0.8247
+encryption_ms_stddev: 0.6124
+encryption_MBps:      20343.4765
+decryption_ms_mean:   0.4782
+decryption_ms_stddev: 0.0025
+decryption_MBps:      35081.1646
+
+
+=== gpu_sweep[64MB] size: 4194304 blocks ===
+[SUCCESS] All 4194304 blocks verified.
+encryption_ms_mean:   2.4145
+encryption_ms_stddev: 0.7222
+encryption_MBps:      27793.7088
+decryption_ms_mean:   1.8942
+decryption_ms_stddev: 0.0012
+decryption_MBps:      35428.4555
+

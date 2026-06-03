@@ -1,0 +1,38 @@
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Warning (dev) at CMakeLists.txt:20 (find_package):
+  Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
+  --help-policy CMP0146" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Found CUDA: /usr/local/cuda (found suitable version "12.8", minimum required is "10.0") 
+-- The CUDA compiler identification is NVIDIA 12.8.93
+-- Detecting CUDA compiler ABI info
+-- Detecting CUDA compiler ABI info - done
+-- Check for working CUDA compiler: /usr/local/cuda/bin/nvcc - skipped
+-- Detecting CUDA compile features
+-- Detecting CUDA compile features - done
+-- ========================================
+-- Block Cipher - Building All Targets
+-- ========================================
+-- Building 7 executables:
+--   1. present80_cpu
+--   2. present80_gpu
+--   3. speck64_cpu
+--   4. speck64_gpu
+--   5. aes_cpu
+--   6. aes_gpu
+--   7. modes_test
+-- ========================================
+-- Configuring done (5.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/devansh/ECE268-Lightweight_block_cipher/build

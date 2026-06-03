@@ -1,0 +1,22 @@
+[  6%] Building CXX object CMakeFiles/present80_cpu.dir/PRESENT80/present80.cpp.o
+[ 13%] Building CUDA object CMakeFiles/speck64_gpu.dir/SPECK64_128/speck64.cu.o
+[ 20%] Building CUDA object CMakeFiles/aes_gpu.dir/AES/aes.cu.o
+[ 26%] Building CXX object CMakeFiles/aes_cpu.dir/AES/aes.cpp.o
+[ 33%] Building CXX object CMakeFiles/modes_test.dir/modes_test.cpp.o
+[ 40%] Building CUDA object CMakeFiles/present80_gpu.dir/PRESENT80/present80.cu.o
+[ 46%] Building CXX object CMakeFiles/modes_test.dir/modes.cpp.o
+[ 53%] Building CXX object CMakeFiles/speck64_cpu.dir/SPECK64_128/speck64.cpp.o
+[ 60%] Linking CXX executable speck64_cpu
+[ 66%] Linking CXX executable present80_cpu
+[ 66%] Built target speck64_cpu
+[ 66%] Built target present80_cpu
+[ 73%] Linking CXX executable aes_cpu
+[ 73%] Built target aes_cpu
+[ 80%] Linking CXX executable modes_test
+[ 80%] Built target modes_test
+[ 86%] Linking CUDA executable speck64_gpu
+[ 86%] Built target speck64_gpu
+[ 93%] Linking CUDA executable aes_gpu
+[ 93%] Built target aes_gpu
+[100%] Linking CUDA executable present80_gpu
+[100%] Built target present80_gpu

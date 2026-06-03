@@ -1,14 +1,31 @@
 # ECE268 Lightweight Block Cipher Project
 
-This project implements two lightweight block ciphers: **PRESENT-80** and **SPECK-64/128**, with support for both CPU and GPU (CUDA) execution.
+This project implements three lightweight block ciphers: **PRESENT-80**, **SPECK-64/128**, and **AES**, with support for both CPU and GPU (CUDA) execution. It includes benchmarking utilities, mode of operation tests, and performance analysis tools.
 
 ## Project Structure
 
-- `present80.cpp` - CPU implementation of PRESENT-80
-- `present80.cu` - GPU/CUDA implementation of PRESENT-80
-- `speck64.cpp` - CPU implementation of SPECK-64/128
-- `CMakeLists.txt` - Build configuration with compiler options
-- `present80.cpp` and `speck64.cpp` - Test implementations
+```
+├── PRESENT80/
+│   ├── present80.cpp       - CPU implementation
+│   ├── present80.cu        - GPU/CUDA implementation
+│   └── present80.h         - Header file
+├── SPECK64_128/
+│   ├── speck64.cpp         - CPU implementation
+│   ├── speck64.cu          - GPU/CUDA implementation
+│   └── speck64.h           - Header file
+├── AES/
+│   ├── aes.cpp             - CPU implementation
+│   ├── aes.cu              - GPU/CUDA implementation
+│   └── aes128.h            - Header file
+├── CMakeLists.txt          - Build configuration
+├── modes.cpp/modes.h       - Block cipher modes (ECB, CBC, CTR, etc.)
+├── modes_test.cpp          - Comprehensive mode testing
+├── bench_utils.h           - Benchmarking utilities
+├── cpu_bench.cpp           - CPU benchmarking harness
+├── build_and_run_all.sh    - Build and run all executables
+├── measure_ptx.sh          - PTX code analysis script
+└── docs/                   - Documentation and reports
+```
 
 ## Prerequisites
 
@@ -23,63 +40,54 @@ This project implements two lightweight block ciphers: **PRESENT-80** and **SPEC
 
 ## Building the Project
 
-Use CMake to configure and build. You can control two options:
+### Automatic Build and Run (Recommended)
 
-| Option | Default | Values |
-|--------|---------|--------|
-| `USE_CUDA` | `ON` | `ON` (CUDA) / `OFF` (CPU) |
-| `CIPHER_SELECTION` | `PRESENT80` | `PRESENT80` / `SPECK64` |
+The easiest way to build and run all 7 executables is to use the provided build script:
 
-### Build Variants
+```bash
+./build_and_run_all.sh
+```
 
-#### 1. CPU PRESENT-80 (default)
+This script will:
+1. Create a `build/` directory
+2. Run CMake configuration
+3. Compile all 7 executables
+4. Execute each one and capture output
+5. Save all outputs to `run_outputs/` directory
+
+**Output files created:**
+- `run_outputs/cmake_output.log` - CMake configuration output
+- `run_outputs/make_output.log` - Build compilation output
+- `run_outputs/<executable>_output.log` - Output from each executable
+
+### Manual Build
+
+Alternatively, you can build manually using CMake:
+
 ```bash
 mkdir build && cd build
-cmake -DUSE_CUDA=OFF -DCIPHER_SELECTION=PRESENT80 ..
-make
-./block_cipher
+cmake ..
+make -j$(nproc)
 ```
 
-#### 2. CPU SPECK-64/128
-```bash
-mkdir build && cd build
-cmake -DUSE_CUDA=OFF -DCIPHER_SELECTION=SPECK64 ..
-make
-./block_cipher
-```
+## Executables
 
-#### 3. CUDA PRESENT-80
-```bash
-mkdir build && cd build
-cmake -DUSE_CUDA=ON -DCIPHER_SELECTION=PRESENT80 ..
-make
-./block_cipher
-```
+The build creates 7 executables:
 
-#### 4. CUDA SPECK-64/128
-```bash
-mkdir build && cd build
-cmake -DUSE_CUDA=ON -DCIPHER_SELECTION=SPECK64 ..
-make
-./block_cipher
-```
+| Executable | Description |
+|-----------|-------------|
+| `present80_cpu` | PRESENT-80 CPU implementation with benchmarks |
+| `present80_gpu` | PRESENT-80 GPU/CUDA implementation with benchmarks |
+| `speck64_cpu` | SPECK-64/128 CPU implementation with benchmarks |
+| `speck64_gpu` | SPECK-64/128 GPU/CUDA implementation with benchmarks |
+| `aes_cpu` | AES CPU implementation with benchmarks |
+| `aes_gpu` | AES GPU/CUDA implementation with benchmarks |
+| `modes_test` | Comprehensive block cipher modes (ECB, CBC, CTR) testing |
 
-### Quick Reference
-
-**CPU builds (fastest to configure):**
-```bash
-cmake -DUSE_CUDA=OFF ..
-```
-
-**CUDA builds (requires NVIDIA CUDA Toolkit):**
-```bash
-cmake -DUSE_CUDA=ON ..
-```
-
-**Select cipher:**
-```bash
-cmake -DCIPHER_SELECTION=PRESENT80 ..   # or SPECK64
-```
+Each executable performs:
+- Encryption/decryption with test vectors
+- Round-trip verification (plaintext → encrypt → decrypt → plaintext)
+- Performance benchmarking (throughput, cycles per block)
 
 ## Algorithm Overview
 
@@ -89,6 +97,7 @@ cmake -DCIPHER_SELECTION=PRESENT80 ..   # or SPECK64
 - **Rounds:** 31
 - **Operations:** S-box substitution + P-layer permutation
 - **Design:** SPN (Substitution-Permutation Network)
+- **Use case:** Lightweight IoT and embedded systems
 
 ### SPECK-64/128
 - **Block size:** 64 bits (32-bit words)
@@ -96,24 +105,111 @@ cmake -DCIPHER_SELECTION=PRESENT80 ..   # or SPECK64
 - **Rounds:** 27
 - **Operations:** ARX (Add-Rotate-Xor)
 - **Design:** Feistel-based ARX cipher
+- **Use case:** High performance lightweight encryption
 
-## Performance
+### AES (Advanced Encryption Standard)
+- **Block size:** 128 bits
+- **Key size:** 128 bits (AES-128)
+- **Rounds:** 10
+- **Operations:** SubBytes, ShiftRows, MixColumns, AddRoundKey
+- **Design:** SPN (Substitution-Permutation Network)
+- **Use case:** Standard encryption, comparison baseline
 
-The CUDA variant encrypts 1,048,576 blocks (~8 MB) in parallel, with performance reported in:
-- Milliseconds elapsed
-- GB/s throughput
-- Million blocks/second
+## Modes of Operation
 
-## Testing
+The `modes_test` executable implements and tests the following modes:
+- **ECB** (Electronic Codebook) - Basic block-by-block encryption
+- **CBC** (Cipher Block Chaining) - Chained mode with IV
+- **CTR** (Counter) - Stream cipher mode with counter
 
-Each implementation includes verification:
-- Single block encryption/decryption with test vectors
-- Round-trip verification (plaintext → encrypt → decrypt → plaintext)
-- For CUDA: Batch verification of all 1M+ blocks for correctness
+## Performance Testing
 
-## Compilation Flags
+### CPU Benchmarking
+The `cpu_bench.cpp` utility benchmarks CPU implementations with:
+- Throughput measurement in GB/s
+- Cycles per block analysis
+- Cache behavior profiling
 
-- `-O3` - Aggressive optimization
-- `-Wall` - Enable all warnings
-- `-g` - Debug symbols
-- `-std=c++17` - C++17 standard
+### GPU Benchmarking
+GPU implementations benchmark:
+- Parallel encryption of 1,048,576+ blocks
+- GPU throughput in MB/s
+- Million blocks per second
+- CUDA kernel optimization metrics
+
+### Batch Processing
+- CPU: Sequential block encryption
+- GPU: Parallel batch encryption on NVIDIA CUDA devices
+
+## Usage Examples
+
+### Run Individual Executable
+```bash
+./build/present80_cpu
+./build/speck64_gpu
+./build/modes_test
+```
+
+### View Results from Batch Run
+```bash
+# After running build_and_run_all.sh
+cat run_outputs/present80_cpu_output.log
+cat run_outputs/speck64_gpu_output.log
+cat run_outputs/modes_test_output.log
+```
+
+### Analyze PTX Code (GPU Optimization)
+```bash
+./measure_ptx.sh
+```
+
+## Project Files Reference
+
+- **bench_utils.h** - Utility functions for performance benchmarking
+- **cpu_bench.cpp** - CPU-specific benchmarking harness
+- **measure_ptx.sh** - Script to analyze NVIDIA PTX assembly code
+- **presentation_10min.md** - 10-minute project presentation
+- **presentation_2min30sec.md** - 2.5-minute project summary
+- **docs/progress_report.tex** - Detailed progress report and analysis
+- **figures/generate_figures.py** - Python script for generating performance graphs
+
+## Build Requirements
+
+- **CMake:** 3.10 or later
+- **C++ Compiler:** GCC/Clang with C++17 support
+- **CUDA (for GPU support):** NVIDIA CUDA Toolkit 10.0+
+- **GPU Memory:** 1GB+ recommended for large batch processing
+
+## Build Artifacts
+
+After building with `build_and_run_all.sh`, the following structure is created:
+```
+build/
+├── present80_cpu
+├── present80_gpu
+├── speck64_cpu
+├── speck64_gpu
+├── aes_cpu
+├── aes_gpu
+├── modes_test
+└── CMakeFiles/
+
+run_outputs/
+├── cmake_output.log
+├── make_output.log
+├── present80_cpu_output.log
+├── present80_gpu_output.log
+├── speck64_cpu_output.log
+├── speck64_gpu_output.log
+├── aes_cpu_output.log
+├── aes_gpu_output.log
+└── modes_test_output.log
+```
+
+## Notes
+
+- Ensure NVIDIA drivers are installed and compatible with your CUDA Toolkit version
+- Use `cmake .. -DCMAKE_BUILD_TYPE=Release` for production builds
+- The `build_and_run_all.sh` script automatically parallelizes builds using all available CPU cores
+- GPU implementations require NVIDIA CUDA capability 3.0 or higher
+- Test output verification ensures correctness of all encryption/decryption operations
