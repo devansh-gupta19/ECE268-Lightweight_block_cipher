@@ -35,26 +35,48 @@ public:
     }
 
     void encrypt(const uint32_t Pt[2], uint32_t Ct[2]) const {
-        Ct[0] = Pt[0]; Ct[1] = Pt[1];
-        for (int i = 0; i < ROUNDS; ++i)
-            ER(Ct[1], Ct[0], round_keys[i]);
+        // Load into registers
+        uint32_t x = Pt[1]; // Left word
+        uint32_t y = Pt[0]; // Right word
+
+        // Force loop unrolling to remove branch penalties
+        #pragma GCC unroll 32
+        for (int i = 0; i < ROUNDS; ++i) {
+            ER(x, y, round_keys[i]);
+        }
+
+        // Store back to memory
+        Ct[1] = x;
+        Ct[0] = y;
     }
 
     void decrypt(const uint32_t Ct[2], uint32_t Pt[2]) const {
-        Pt[0] = Ct[0]; Pt[1] = Ct[1];
-        for (int i = ROUNDS - 1; i >= 0; --i)
-            DR(Pt[1], Pt[0], round_keys[i]);
+        // Load into registers
+        uint32_t x = Ct[1]; // Left word
+        uint32_t y = Ct[0]; // Right word
+
+        // Use a forward loop to ensure auto-vectorization doesn't break
+        #pragma GCC unroll 32
+        for (int i = 0; i < ROUNDS; ++i) {
+            // Reverse the key index mathematically
+            DR(x, y, round_keys[ROUNDS - 1 - i]);
+        }
+
+        // Store back to memory
+        Pt[1] = x;
+        Pt[0] = y;
     }
+
     const uint32_t* round_keys_ptr() const { return round_keys; }
 
     // Batch helpers used by the sweep.
     // Each block is a pair of consecutive uint32_t words: [right, left] = [w[0], w[1]].
-    void encrypt_batch(const uint32_t* pt, uint32_t* ct, int n_blocks) const {
+    void encrypt_batch(const uint32_t* __restrict pt, uint32_t* __restrict ct, int n_blocks) const {
         for (int i = 0; i < n_blocks; ++i)
             encrypt(pt + i * 2, ct + i * 2);
     }
  
-    void decrypt_batch(const uint32_t* ct, uint32_t* pt, int n_blocks) const {
+    void decrypt_batch(const uint32_t* __restrict ct, uint32_t* __restrict pt, int n_blocks) const {
         for (int i = 0; i < n_blocks; ++i)
             decrypt(ct + i * 2, pt + i * 2);
     }
