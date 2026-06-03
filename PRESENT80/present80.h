@@ -102,6 +102,21 @@ public:
         return state;
     }
     const uint64_t* round_keys_ptr() const { return round_keys; }
+
+    // Batch helpers used by the sweep
+    void encrypt_batch(const uint64_t* plaintexts,
+                       uint64_t*       ciphertexts,
+                       int             n) const {
+        for (int i = 0; i < n; ++i)
+            ciphertexts[i] = encrypt(plaintexts[i]);
+    }
+ 
+    void decrypt_batch(const uint64_t* ciphertexts,
+                       uint64_t*       plaintexts,
+                       int             n) const {
+        for (int i = 0; i < n; ++i)
+            plaintexts[i] = decrypt(ciphertexts[i]);
+    }
 };
 
 inline const uint8_t Present80::SBOX[16] = {

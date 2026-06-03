@@ -232,15 +232,15 @@ int main()
         compute_stats(dec_ms_v, N_TRIALS, dec_mean, dec_std);
 
         double bytes_d    = (double)n * 8.0;
-        double enc_gbps_s = bytes_d / (enc_mean * 1e-3) / 1e9;
-        double dec_gbps_s = bytes_d / (dec_mean * 1e-3) / 1e9;
+        double enc_mbps_s = bytes_d / (enc_mean * 1e-3) / 1e6;
+        double dec_mbps_s = bytes_d / (dec_mean * 1e-3) / 1e6;
 
         std::cout << "encryption_ms_mean:   "      << enc_mean   << "\n";
         std::cout << "encryption_ms_stddev: "      << enc_std    << "\n";
-        std::cout << "encryption_GBps:      "      << enc_gbps_s << "\n";
+        std::cout << "encryption_MBps:      "      << enc_mbps_s << "\n";
         std::cout << "decryption_ms_mean:   "      << dec_mean   << "\n";
         std::cout << "decryption_ms_stddev: "      << dec_std    << "\n";
-        std::cout << "decryption_GBps:      "      << dec_gbps_s << "\n";
+        std::cout << "decryption_MBps:      "      << dec_mbps_s << "\n";
 
         // Add an extra blank line to separate sizes in terminal output
         std::cout << "\n";

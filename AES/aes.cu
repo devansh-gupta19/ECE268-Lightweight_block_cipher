@@ -263,6 +263,7 @@ int main()
 
     const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
     const char* SWEEP_LABELS[5] = {"1KB","64KB","1MB","16MB","64MB"};
+    const size_t MAX_BYTES = SWEEP_BYTES[4]; 
     const int    N_MAX     = (int)(SWEEP_BYTES[4] / 16);  // Blocks for 64 MB
 
     // ── GPU info block ────────────────────────────────────────────────────
@@ -285,18 +286,18 @@ int main()
     generate_aes_round_keys(key, h_round_keys);
     CUDA_CHECK(cudaMemcpyToSymbol(d_round_keys, h_round_keys, 11 * 16 * sizeof(uint8_t)));
 
-    // ── 2. Allocate host + device buffers at N_MAX (reused for all sizes) ─
-    uint8_t* h_plain     = new uint8_t[N_MAX * 16];
-    uint8_t* h_cipher    = new uint8_t[N_MAX * 16];
-    uint8_t* h_decrypted = new uint8_t[N_MAX * 16];
-    for (size_t i = 0; i < N_MAX * 16; ++i)
+    // ── 2. Allocate host + device buffers at MAX_BYTES (reused for all sizes) ─
+    uint8_t* h_plain     = new uint8_t[MAX_BYTES];
+    uint8_t* h_cipher    = new uint8_t[MAX_BYTES];
+    uint8_t* h_decrypted = new uint8_t[MAX_BYTES];
+    for (size_t i = 0; i < (size_t)(MAX_BYTES); ++i)
         h_plain[i] = (uint8_t)(i & 0xFF);
 
     uint8_t *d_plain, *d_cipher, *d_decrypted;
-    CUDA_CHECK(cudaMalloc(&d_plain,     N_MAX * 16 * sizeof(uint8_t)));
-    CUDA_CHECK(cudaMalloc(&d_cipher,    N_MAX * 16 * sizeof(uint8_t)));
-    CUDA_CHECK(cudaMalloc(&d_decrypted, N_MAX * 16 * sizeof(uint8_t)));
-    CUDA_CHECK(cudaMemcpy(d_plain, h_plain, N_MAX * 16 * sizeof(uint8_t), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMalloc(&d_plain,     MAX_BYTES * sizeof(uint8_t)));
+    CUDA_CHECK(cudaMalloc(&d_cipher,    MAX_BYTES * sizeof(uint8_t)));
+    CUDA_CHECK(cudaMalloc(&d_decrypted, MAX_BYTES * sizeof(uint8_t)));
+    CUDA_CHECK(cudaMemcpy(d_plain, h_plain, MAX_BYTES * sizeof(uint8_t), cudaMemcpyHostToDevice));
 
     cudaEvent_t t_start, t_end;
     CUDA_CHECK(cudaEventCreate(&t_start));
@@ -369,16 +370,16 @@ int main()
         compute_stats(enc_ms_v, N_TRIALS, enc_mean, enc_std);
         compute_stats(dec_ms_v, N_TRIALS, dec_mean, dec_std);
 
-        double bytes_d    = (double)n * 16.0;
-        double enc_gbps_s = bytes_d / (enc_mean * 1e-3) / 1e9;
-        double dec_gbps_s = bytes_d / (dec_mean * 1e-3) / 1e9;
+        double bytes_d    = (double)(SWEEP_BYTES[s]);
+        double enc_mbps_s = bytes_d / (enc_mean * 1e-3) / 1e6;
+        double dec_mbps_s = bytes_d / (dec_mean * 1e-3) / 1e6;
 
         std::cout << "encryption_ms_mean:   "      << enc_mean   << "\n";
         std::cout << "encryption_ms_stddev: "      << enc_std    << "\n";
-        std::cout << "encryption_GBps:      "      << enc_gbps_s << "\n";
+        std::cout << "encryption_MBps:      "      << enc_mbps_s << "\n";
         std::cout << "decryption_ms_mean:   "      << dec_mean   << "\n";
         std::cout << "decryption_ms_stddev: "      << dec_std    << "\n";
-        std::cout << "decryption_GBps:      "      << dec_gbps_s << "\n";
+        std::cout << "decryption_MBps:      "      << dec_mbps_s << "\n";
         std::cout << "\n";
     }
 

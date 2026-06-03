@@ -3,88 +3,9 @@
 #include <iomanip>
 #include <chrono>
 #include <cmath>
+#include "speck64.h"
 
-class Speck64_128 {
-public:
-    // SPECK-64/128 utilizes 27 rounds
-    static constexpr int ROUNDS = 27;
-
-private:
-    uint32_t round_keys[ROUNDS];
-
-    // Circular Right Shift
-    // Note: Modern compilers automatically optimize this idiom into a single 
-    // native CPU rotation instruction (e.g., ROR on ARM/x86).
-    static inline uint32_t ROTR32(uint32_t x, int r) {
-        return (x >> r) | (x << (32 - r));
-    }
-
-    // Circular Left Shift
-    static inline uint32_t ROTL32(uint32_t x, int r) {
-        return (x << r) | (x >> (32 - r));
-    }
-
-    // Core ARX Encryption Round Function (x = Left word, y = Right word)
-    static inline void ER(uint32_t& x, uint32_t& y, uint32_t k) {
-        x = (ROTR32(x, 8) + y) ^ k;
-        y = ROTL32(y, 3) ^ x;
-    }
-
-    // Inverse ARX Decryption Round Function
-    static inline void DR(uint32_t& x, uint32_t& y, uint32_t k) {
-        y = ROTR32(y ^ x, 3);
-        x = ROTL32((x ^ k) - y, 8);
-    }
-
-public:
-    // Initializes the cipher by expanding the 128-bit key into 27 round keys
-    void expandKey(const uint32_t K[4]) {
-        uint32_t b = K[0];
-        // a[3] acts as a rolling window for the upper words of the key
-        uint32_t a[3] = {K[1], K[2], K[3]}; 
-
-        round_keys[0] = b;
-        for (uint32_t i = 0; i < ROUNDS - 1; ++i) {
-            // The key schedule utilizes the exact same ARX round function
-            ER(a[i % 3], b, i);
-            round_keys[i + 1] = b;
-        }
-    }
-
-    // Encrypts a 64-bit block
-    // Pt[1] = Left word, Pt[0] = Right word
-    void encrypt(const uint32_t Pt[2], uint32_t Ct[2]) const {
-        Ct[0] = Pt[0];
-        Ct[1] = Pt[1];
-        for (int i = 0; i < ROUNDS; ++i) {
-            ER(Ct[1], Ct[0], round_keys[i]);
-        }
-    }
-
-    // Decrypts a 64-bit block
-    // Ct[1] = Left word, Ct[0] = Right word
-    void decrypt(const uint32_t Ct[2], uint32_t Pt[2]) const {
-        Pt[0] = Ct[0];
-        Pt[1] = Ct[1];
-        for (int i = ROUNDS - 1; i >= 0; --i) {
-            DR(Pt[1], Pt[0], round_keys[i]);
-        }
-    }
-
-    // Batch helpers used by the sweep.
-    // Each block is a pair of consecutive uint32_t words: [right, left] = [w[0], w[1]].
-    void encrypt_batch(const uint32_t* pt, uint32_t* ct, int n_blocks) const {
-        for (int i = 0; i < n_blocks; ++i)
-            encrypt(pt + i * 2, ct + i * 2);
-    }
- 
-    void decrypt_batch(const uint32_t* ct, uint32_t* pt, int n_blocks) const {
-        for (int i = 0; i < n_blocks; ++i)
-            decrypt(ct + i * 2, pt + i * 2);
-    }
-};
-
-// ─── Timing helpers ───────────────────────────────────────────────────────────
+// Timing helpers
  
 using Clock   = std::chrono::high_resolution_clock;
 using DMillis = std::chrono::duration<double, std::milli>;
@@ -244,17 +165,17 @@ int main() {
         // Throughput: bytes processed ÷ wall-clock seconds
         // Each block is 8 bytes; same formula used in the PRESENT-80 and CUDA benchmarks.
         double bytes_d    = (double)n * 8.0;
-        double enc_gbps_s = bytes_d / (enc_mean * 1e-3) / 1e9;
-        double dec_gbps_s = bytes_d / (dec_mean * 1e-3) / 1e9;
+        double enc_mbps_s = bytes_d / (enc_mean * 1e-3) / 1e6;
+        double dec_mbps_s = bytes_d / (dec_mean * 1e-3) / 1e6;
 
         // Field names match the PRESENT-80 CPU sweep output for easy side-by-side plotting
         std::cout << std::fixed << std::setprecision(4);
         std::cout << "encryption_ms_mean:   " << enc_mean   << "\n";
         std::cout << "encryption_ms_stddev: " << enc_std    << "\n";
-        std::cout << "encryption_GBps:      " << enc_gbps_s << "\n";
+        std::cout << "encryption_MBps:      " << enc_mbps_s << "\n";
         std::cout << "decryption_ms_mean:   " << dec_mean   << "\n";
         std::cout << "decryption_ms_stddev: " << dec_std    << "\n";
-        std::cout << "decryption_GBps:      " << dec_gbps_s << "\n";
+        std::cout << "decryption_MBps:      " << dec_mbps_s << "\n";
         std::cout << "\n";
     }
 

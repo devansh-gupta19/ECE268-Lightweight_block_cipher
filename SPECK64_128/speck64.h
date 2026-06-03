@@ -2,8 +2,10 @@
 #include <cstdint>
 
 class Speck64_128 {
-private:
+public:
+    // SPECK-64/128 utilizes 27 rounds
     static constexpr int ROUNDS = 27;
+private:
     uint32_t round_keys[ROUNDS];
 
     static inline uint32_t ROTR32(uint32_t x, int r) {
@@ -44,4 +46,16 @@ public:
             DR(Pt[1], Pt[0], round_keys[i]);
     }
     const uint32_t* round_keys_ptr() const { return round_keys; }
+
+    // Batch helpers used by the sweep.
+    // Each block is a pair of consecutive uint32_t words: [right, left] = [w[0], w[1]].
+    void encrypt_batch(const uint32_t* pt, uint32_t* ct, int n_blocks) const {
+        for (int i = 0; i < n_blocks; ++i)
+            encrypt(pt + i * 2, ct + i * 2);
+    }
+ 
+    void decrypt_batch(const uint32_t* ct, uint32_t* pt, int n_blocks) const {
+        for (int i = 0; i < n_blocks; ++i)
+            decrypt(ct + i * 2, pt + i * 2);
+    }
 };

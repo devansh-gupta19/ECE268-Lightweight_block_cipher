@@ -2,19 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(PROJECT_NAME block_cipher)
 
-# Initialize with C++
+# Initialize with C++ and CUDA
 project(${PROJECT_NAME} LANGUAGES CXX)
-
-# --- Configuration Options ---
-
-# Option 1: Hardware Acceleration (CUDA vs CPU)
-option(USE_CUDA "Compile option to use CUDA" OFF)
-
-# Option 2: Cipher Selection (PRESENT80 vs SPECK64 vs AES)
-#set(CIPHER_SELECTION "PRESENT80" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64 or AES)")
-set(CIPHER_SELECTION "AES" CACHE STRING "Select the block cipher to compile (PRESENT80 or SPECK64 or AES)")
-# This property restricts the GUI/ccmake input to these specific strings
-set_property(CACHE CIPHER_SELECTION PROPERTY STRINGS "PRESENT80" "SPECK64" "AES")
 
 # --- Compiler Settings ---
 
@@ -22,52 +11,64 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -g")
 
-# --- Source Selection Logic ---
-
-if (USE_CUDA)
-    set(BUILD_TYPE_MSG "GPU (CUDA)")
-    # CUDA Setup — find nvcc in PATH if not at the hardcoded path
-    find_program(NVCC_EXECUTABLE nvcc PATHS /usr/local/cuda/bin /usr/bin NO_DEFAULT_PATH)
-    if(NOT NVCC_EXECUTABLE)
-        find_program(NVCC_EXECUTABLE nvcc)
-    endif()
-    set(CMAKE_CUDA_COMPILER "${NVCC_EXECUTABLE}")
-    find_package(CUDA 10.0 REQUIRED)
-    set(CMAKE_CUDA_ARCHITECTURES native)
-    enable_language(CUDA)
-
-    # CUDA Source Routing
-    if (CIPHER_SELECTION STREQUAL "SPECK64")
-        set(SOURCES ./SPECK64_128/speck64.cu)
-    elseif (CIPHER_SELECTION STREQUAL "PRESENT80")
-        set(SOURCES ./PRESENT80/present80.cu)
-    else () # AES
-        set(SOURCES ./AES/aes.cu)
-    endif()
-
-else()
-    set(BUILD_TYPE_MSG "CPU")
-    # Baseline C++ Source Routing
-    if (CIPHER_SELECTION STREQUAL "SPECK64")
-        set(SOURCES ./SPECK64_128/speck64.cpp)
-    elseif (CIPHER_SELECTION STREQUAL "PRESENT80")
-        set(SOURCES ./PRESENT80/present80.cpp)
-    else () # AES
-        set(SOURCES ./AES/aes.cpp)
-    endif()
+# --- CUDA Setup ---
+find_program(NVCC_EXECUTABLE nvcc PATHS /usr/local/cuda/bin /usr/bin NO_DEFAULT_PATH)
+if(NOT NVCC_EXECUTABLE)
+    find_program(NVCC_EXECUTABLE nvcc)
 endif()
+set(CMAKE_CUDA_COMPILER "${NVCC_EXECUTABLE}")
+find_package(CUDA 10.0 REQUIRED)
+set(CMAKE_CUDA_ARCHITECTURES native)
+enable_language(CUDA)
 
-# --- Build Configuration Message ---
+# --- Build Message ---
 message(STATUS "========================================")
-message(STATUS "Block Cipher Build Configuration")
+message(STATUS "Block Cipher - Building All Targets")
 message(STATUS "========================================")
-message(STATUS "Build Type:     ${BUILD_TYPE_MSG}")
-message(STATUS "Cipher:         ${CIPHER_SELECTION}")
+message(STATUS "Building 7 executables:")
+message(STATUS "  1. present80_cpu")
+message(STATUS "  2. present80_gpu")
+message(STATUS "  3. speck64_cpu")
+message(STATUS "  4. speck64_gpu")
+message(STATUS "  5. aes_cpu")
+message(STATUS "  6. aes_gpu")
+message(STATUS "  7. modes_test")
 message(STATUS "========================================")
 
+# --- PRESENT80 CPU ---
+add_executable(present80_cpu ./PRESENT80/present80.cpp)
+target_compile_options(present80_cpu PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(present80_cpu PRIVATE ./PRESENT80/)
 
-# --- Build Target ---
+# --- PRESENT80 GPU ---
+add_executable(present80_gpu ./PRESENT80/present80.cu)
+set_target_properties(present80_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(present80_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(present80_gpu PRIVATE ./PRESENT80/)
 
-# Add the executable
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
+# --- SPECK64 CPU ---
+add_executable(speck64_cpu ./SPECK64_128/speck64.cpp)
+target_compile_options(speck64_cpu PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(speck64_cpu PRIVATE ./SPECK64_128/)
+
+# --- SPECK64 GPU ---
+add_executable(speck64_gpu ./SPECK64_128/speck64.cu)
+set_target_properties(speck64_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(speck64_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(speck64_gpu PRIVATE ./SPECK64_128/)
+
+# --- AES CPU ---
+add_executable(aes_cpu ./AES/aes.cpp)
+target_compile_options(aes_cpu PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(aes_cpu PRIVATE ./AES/)
+
+# --- AES GPU ---
+add_executable(aes_gpu ./AES/aes.cu)
+set_target_properties(aes_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(aes_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(aes_gpu PRIVATE ./AES/)
+
+# --- Modes Test ---
+add_executable(modes_test modes_test.cpp modes.cpp)
+target_compile_options(modes_test PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(modes_test PRIVATE ./PRESENT80/ ./SPECK64_128/ ./AES/)

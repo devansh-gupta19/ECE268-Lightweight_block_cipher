@@ -91,7 +91,6 @@ int main() {
     const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
     const char* SWEEP_LABELS[5] = {"1KB", "64KB", "1MB", "16MB", "64MB"};
     const size_t MAX_BYTES = SWEEP_BYTES[4]; 
-    const int    N_MAX = (int)(MAX_BYTES / 16);   // Blocks for 64MB
 
     std::cout << "=== AES-128 cpu info ===\n";
     std::cout << std::dec;
@@ -164,15 +163,15 @@ int main() {
         compute_stats(dec_ms_v, N_TRIALS, dec_mean, dec_std);
 
         double bytes_d    = (double)(SWEEP_BYTES[s]);
-        double enc_gbps_s = bytes_d / (enc_mean * 1e-3) / 1e9;
-        double dec_gbps_s = bytes_d / (dec_mean * 1e-3) / 1e9;
+        double enc_mbps_s = bytes_d / (enc_mean * 1e-3) / 1e6;
+        double dec_mbps_s = bytes_d / (dec_mean * 1e-3) / 1e6;
 
         std::cout << "encryption_ms_mean:   " << enc_mean   << "\n";
         std::cout << "encryption_ms_stddev: " << enc_std    << "\n";
-        std::cout << "encryption_GBps:      " << enc_gbps_s << "\n";
+        std::cout << "encryption_MBps:      " << enc_mbps_s << "\n";
         std::cout << "decryption_ms_mean:   " << dec_mean   << "\n";
         std::cout << "decryption_ms_stddev: " << dec_std    << "\n";
-        std::cout << "decryption_GBps:      " << dec_gbps_s << "\n";
+        std::cout << "decryption_MBps:      " << dec_mbps_s << "\n";
     }
 
     return 0;
