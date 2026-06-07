@@ -1,0 +1,58 @@
+=== PRESENT-80 CTR mode gpu info ===
+const_mem_round_keys_bytes: 256
+const_mem_sbox_bytes: 16
+const_mem_total_bytes: 272
+key_schedule_size_bytes: 256
+n_trials_per_size: 5
+
+=== PRESENT-80 CTR GPU sweep ===
+
+=== gpu_sweep[1KB] size: 128 blocks ===
+[SUCCESS] All 128 blocks verified.
+encryption_ms_mean:   0.0233
+encryption_ms_stddev: 0.0000
+encryption_MBps:      43.9645
+decryption_ms_mean:   0.0233
+decryption_ms_stddev: 0.0000
+decryption_MBps:      43.9753
+
+
+=== gpu_sweep[64KB] size: 8192 blocks ===
+[SUCCESS] All 8192 blocks verified.
+encryption_ms_mean:   0.0420
+encryption_ms_stddev: 0.0000
+encryption_MBps:      1558.5736
+decryption_ms_mean:   0.0420
+decryption_ms_stddev: 0.0000
+decryption_MBps:      1559.5872
+
+
+=== gpu_sweep[1MB] size: 131072 blocks ===
+[SUCCESS] All 131072 blocks verified.
+encryption_ms_mean:   0.1600
+encryption_ms_stddev: 0.0005
+encryption_MBps:      6554.6489
+decryption_ms_mean:   0.1601
+decryption_ms_stddev: 0.0004
+decryption_MBps:      6550.4559
+
+
+=== gpu_sweep[16MB] size: 2097152 blocks ===
+[SUCCESS] All 2097152 blocks verified.
+encryption_ms_mean:   2.2513
+encryption_ms_stddev: 0.0019
+encryption_MBps:      7452.3963
+decryption_ms_mean:   2.2503
+decryption_ms_stddev: 0.0008
+decryption_MBps:      7455.4485
+
+
+=== gpu_sweep[64MB] size: 8388608 blocks ===
+[SUCCESS] All 8388608 blocks verified.
+encryption_ms_mean:   8.9460
+encryption_ms_stddev: 0.0014
+encryption_MBps:      7501.5253
+decryption_ms_mean:   8.9446
+decryption_ms_stddev: 0.0014
+decryption_MBps:      7502.7065
+

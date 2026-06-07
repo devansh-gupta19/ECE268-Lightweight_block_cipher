@@ -1,6 +1,6 @@
 Running CPU benchmarks (takes ~60s)...
 === PRESENT-80 cpu ===
-timestamp_utc: 2026-06-03T20:45:59Z
+timestamp_utc: 2026-06-07T22:16:27Z
 host: asgard
 cpu: AMD EPYC 9374F 32-Core Processor
 cpu_mhz_at_run: 1500
@@ -8,90 +8,90 @@ gpu: N/A
 compiler: g++ 13.3
 round_key_bytes: 256
 ---
-key_schedule_us_mean: 2.2020
-key_schedule_us_stddev: 0.0053
-key_schedule_cycles_mean: 8464.9346
-single_block_cycles_median: 21366
-bulk_ecb_throughput_MBps: 4.9437
-ctr_throughput_MBps: 1.3966
-cbc_throughput_MBps: 1.3311
-cycles_per_byte: 741.5841
+key_schedule_us_mean: 2.1897
+key_schedule_us_stddev: 0.0098
+key_schedule_cycles_mean: 8417.5318
+single_block_cycles_median: 21136
+bulk_ecb_throughput_MBps: 4.9943
+ctr_throughput_MBps: 1.4098
+cbc_throughput_MBps: 1.3428
+cycles_per_byte: 734.0591
 gpu_kernel_ms: N/A
 gpu_end_to_end_GBps: N/A
 gpu_kernel_only_GBps: N/A
 test_vector_status: PASS
-sweep[1KB]_throughput_MBps: 4.8819
-sweep[1KB]_cycles_per_byte: 750.9692
-sweep[64KB]_throughput_MBps: 4.8832
-sweep[64KB]_cycles_per_byte: 750.7675
-sweep[1MB]_throughput_MBps: 4.8852
-sweep[1MB]_cycles_per_byte: 750.4513
-sweep[16MB]_throughput_MBps: 4.8802
-sweep[16MB]_cycles_per_byte: 751.2352
-sweep[64MB]_throughput_MBps: 4.8781
-sweep[64MB]_cycles_per_byte: 751.5571
+sweep[1KB]_throughput_MBps: 4.9201
+sweep[1KB]_cycles_per_byte: 745.1278
+sweep[64KB]_throughput_MBps: 4.9239
+sweep[64KB]_cycles_per_byte: 744.5625
+sweep[1MB]_throughput_MBps: 4.9218
+sweep[1MB]_cycles_per_byte: 744.8761
+sweep[16MB]_throughput_MBps: 4.9211
+sweep[16MB]_cycles_per_byte: 744.9859
+sweep[64MB]_throughput_MBps: 4.9253
+sweep[64MB]_cycles_per_byte: 744.3487
 
 === SPECK-64/128 cpu ===
-timestamp_utc: 2026-06-03T20:47:41Z
+timestamp_utc: 2026-06-07T22:18:07Z
 host: asgard
 cpu: AMD EPYC 9374F 32-Core Processor
-cpu_mhz_at_run: 4258.7250
+cpu_mhz_at_run: 1500.0000
 gpu: N/A
 compiler: g++ 13.3
 round_key_bytes: 108
 ---
-key_schedule_us_mean: 0.0260
-key_schedule_us_stddev: 0.0003
-key_schedule_cycles_mean: 99.9783
+key_schedule_us_mean: 0.0258
+key_schedule_us_stddev: 0.0002
+key_schedule_cycles_mean: 99.3038
 single_block_cycles_median: 39
-bulk_ecb_throughput_MBps: 1167.3662
-ctr_throughput_MBps: 527.9090
-cbc_throughput_MBps: 290.3434
-cycles_per_byte: 3.1403
+bulk_ecb_throughput_MBps: 1183.0765
+ctr_throughput_MBps: 534.1016
+cbc_throughput_MBps: 293.6145
+cycles_per_byte: 3.0987
 gpu_kernel_ms: N/A
 gpu_end_to_end_GBps: N/A
 gpu_kernel_only_GBps: N/A
 test_vector_status: PASS
-sweep[1KB]_throughput_MBps: 1164.6458
-sweep[1KB]_cycles_per_byte: 3.1478
-sweep[64KB]_throughput_MBps: 1167.9071
-sweep[64KB]_cycles_per_byte: 3.1391
-sweep[1MB]_throughput_MBps: 1166.7187
-sweep[1MB]_cycles_per_byte: 3.1422
-sweep[16MB]_throughput_MBps: 1158.7435
-sweep[16MB]_cycles_per_byte: 3.1638
-sweep[64MB]_throughput_MBps: 1132.8851
-sweep[64MB]_cycles_per_byte: 3.2360
+sweep[1KB]_throughput_MBps: 1183.5335
+sweep[1KB]_cycles_per_byte: 3.0976
+sweep[64KB]_throughput_MBps: 1187.6935
+sweep[64KB]_cycles_per_byte: 3.0868
+sweep[1MB]_throughput_MBps: 1184.2841
+sweep[1MB]_cycles_per_byte: 3.0956
+sweep[16MB]_throughput_MBps: 1168.4026
+sweep[16MB]_cycles_per_byte: 3.1377
+sweep[64MB]_throughput_MBps: 1155.4875
+sweep[64MB]_cycles_per_byte: 3.1727
 
 === AES-128 cpu ===
-timestamp_utc: 2026-06-03T20:47:41Z
+timestamp_utc: 2026-06-07T22:18:08Z
 host: asgard
 cpu: AMD EPYC 9374F 32-Core Processor
-cpu_mhz_at_run: 4243.4380
+cpu_mhz_at_run: 1500.0000
 gpu: N/A
 compiler: g++ 13.3
 round_key_bytes: 176
 ---
-key_schedule_us_mean: 0.0937
-key_schedule_us_stddev: 0.0010
-key_schedule_cycles_mean: 360.1247
-single_block_cycles_median: 2618
-bulk_ecb_throughput_MBps: 22.4681
-ctr_throughput_MBps: 21.6991
-cbc_throughput_MBps: 21.9007
-cycles_per_byte: 163.1707
+key_schedule_us_mean: 0.0928
+key_schedule_us_stddev: 0.0011
+key_schedule_cycles_mean: 356.6528
+single_block_cycles_median: 2580
+bulk_ecb_throughput_MBps: 22.7152
+ctr_throughput_MBps: 21.7925
+cbc_throughput_MBps: 22.3189
+cycles_per_byte: 161.3955
 gpu_kernel_ms: N/A
 gpu_end_to_end_GBps: N/A
 gpu_kernel_only_GBps: N/A
 test_vector_status: PASS
-sweep[1KB]_throughput_MBps: 22.4979
-sweep[1KB]_cycles_per_byte: 162.9549
-sweep[64KB]_throughput_MBps: 22.5343
-sweep[64KB]_cycles_per_byte: 162.6914
-sweep[1MB]_throughput_MBps: 22.5293
-sweep[1MB]_cycles_per_byte: 162.7277
-sweep[16MB]_throughput_MBps: 22.4685
-sweep[16MB]_cycles_per_byte: 163.1683
-sweep[64MB]_throughput_MBps: 22.4809
-sweep[64MB]_cycles_per_byte: 163.0781
+sweep[1KB]_throughput_MBps: 22.7319
+sweep[1KB]_cycles_per_byte: 161.2771
+sweep[64KB]_throughput_MBps: 22.7173
+sweep[64KB]_cycles_per_byte: 161.3809
+sweep[1MB]_throughput_MBps: 22.7224
+sweep[1MB]_cycles_per_byte: 161.3446
+sweep[16MB]_throughput_MBps: 22.7077
+sweep[16MB]_cycles_per_byte: 161.4491
+sweep[64MB]_throughput_MBps: 22.6557
+sweep[64MB]_cycles_per_byte: 161.8197
 

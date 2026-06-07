@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build and run all executables with output logging
-# This script builds all 7 executables and stores their output in separate files
+# This script builds all 11 executables and stores their output in separate files
 
 set -e  # Exit on error
 
@@ -37,12 +37,15 @@ echo ""
 
 # Define executables to run
 EXECUTABLES=(
-    "present80_cpu"
-    "present80_gpu"
-    "speck64_cpu"
-    "speck64_gpu"
-    "aes_cpu"
-    "aes_gpu"
+    "present80_ecb_cpu"
+    "present80_ecb_gpu"
+    "present80_ctr_gpu"
+    "speck64_ecb_cpu"
+    "speck64_ecb_gpu"
+    "speck64_ctr_gpu"
+    "aes_ecb_cpu"
+    "aes_ecb_gpu"
+    "aes_ctr_gpu"
     "modes_test"
     "cpu_bench"
 )

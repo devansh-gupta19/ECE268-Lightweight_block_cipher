@@ -42,7 +42,7 @@ This project implements three lightweight block ciphers: **PRESENT-80**, **SPECK
 
 ### Automatic Build and Run (Recommended)
 
-The easiest way to build and run all 7 executables is to use the provided build script:
+The easiest way to build and run all 11 executables is to use the provided build script:
 
 ```bash
 ./build_and_run_all.sh
@@ -51,7 +51,7 @@ The easiest way to build and run all 7 executables is to use the provided build 
 This script will:
 1. Create a `build/` directory
 2. Run CMake configuration
-3. Compile all 7 executables
+3. Compile all 11 executables
 4. Execute each one and capture output
 5. Save all outputs to `run_outputs/` directory
 
@@ -72,23 +72,43 @@ make -j$(nproc)
 
 ## Executables
 
-The build creates 8 executables:
+The build creates 11 executables:
 
 | Executable | Description |
 |-----------|-------------|
 | `cpu_bench` | Comprehensive CPU benchmarking for all three ciphers (PRESENT-80, SPECK-64/128, AES) with metrics collection |
-| `present80_cpu` | PRESENT-80 CPU implementation with benchmarks |
-| `present80_gpu` | PRESENT-80 GPU/CUDA implementation with benchmarks |
-| `speck64_cpu` | SPECK-64/128 CPU implementation with benchmarks |
-| `speck64_gpu` | SPECK-64/128 GPU/CUDA implementation with benchmarks |
-| `aes_cpu` | AES CPU implementation with benchmarks |
-| `aes_gpu` | AES GPU/CUDA implementation with benchmarks |
-| `modes_test` | Comprehensive block cipher modes (ECB, CBC, CTR) testing |
+| `present80_ecb_cpu` | PRESENT-80 CPU implementation with ECB mode benchmarks |
+| `present80_ecb_gpu` | PRESENT-80 GPU/CUDA implementation with ECB mode benchmarks |
+| `present80_ctr_gpu` | PRESENT-80 GPU/CUDA implementation with CTR (Counter) mode benchmarks |
+| `speck64_ecb_cpu` | SPECK-64/128 CPU implementation with ECB mode benchmarks |
+| `speck64_ecb_gpu` | SPECK-64/128 GPU/CUDA implementation with ECB mode benchmarks |
+| `speck64_ctr_gpu` | SPECK-64/128 GPU/CUDA implementation with CTR (Counter) mode benchmarks |
+| `aes_ecb_cpu` | AES CPU implementation with ECB mode benchmarks |
+| `aes_ecb_gpu` | AES GPU/CUDA implementation with ECB mode benchmarks |
+| `aes_ctr_gpu` | AES GPU/CUDA implementation with CTR (Counter) mode benchmarks |
+| `modes_test` | Comprehensive block cipher modes (ECB, CBC, CTR) testing on CPU |
 
 Each executable performs:
 - Encryption/decryption with test vectors
 - Round-trip verification (plaintext → encrypt → decrypt → plaintext)
 - Performance benchmarking (throughput, cycles per block)
+
+### GPU CTR Mode Implementation
+
+The GPU implementations include **CTR (Counter) mode** for `present80_ctr_gpu`, `speck64_ctr_gpu`, and `aes_ctr_gpu`. CTR mode is ideal for GPU parallelization because:
+- Each block encryption is **independent** with only the counter incrementing
+- All blocks can be encrypted in **parallel** on CUDA threads
+- No data dependencies between blocks, enabling optimal GPU utilization
+
+### Why CBC Mode is Not Implemented for GPU
+
+**CBC (Cipher Block Chaining) mode is not included for GPU implementations** due to fundamental parallelization constraints:
+- CBC mode requires each block's ciphertext to depend on the **previous ciphertext block**
+- This creates a **sequential dependency chain** that prevents parallel processing
+- The dependency enforces strict ordering: block $i$ cannot be encrypted until block $i-1$ has completed
+- For GPU acceleration, this sequential nature eliminates the benefit of parallel execution
+
+Therefore, GPU implementations focus on **ECB and CTR modes**, where blocks can be processed independently in parallel. CBC mode remains available exclusively in the `modes_test` CPU implementation for correctness verification and testing purposes.
 
 ## Algorithm Overview
 
@@ -146,16 +166,18 @@ GPU implementations benchmark:
 
 ### Run Individual Executable
 ```bash
-./build/present80_cpu
-./build/speck64_gpu
+./build/present80_ecb_cpu
+./build/speck64_ctr_gpu
+./build/aes_ecb_gpu
 ./build/modes_test
 ```
 
 ### View Results from Batch Run
 ```bash
 # After running build_and_run_all.sh
-cat run_outputs/present80_cpu_output.log
-cat run_outputs/speck64_gpu_output.log
+cat run_outputs/present80_ecb_cpu_output.log
+cat run_outputs/speck64_ctr_gpu_output.log
+cat run_outputs/aes_ecb_gpu_output.log
 cat run_outputs/modes_test_output.log
 ```
 
@@ -186,25 +208,33 @@ cat run_outputs/modes_test_output.log
 After building with `build_and_run_all.sh`, the following structure is created:
 ```
 build/
-├── present80_cpu
-├── present80_gpu
-├── speck64_cpu
-├── speck64_gpu
-├── aes_cpu
-├── aes_gpu
+├── present80_ecb_cpu
+├── present80_ecb_gpu
+├── present80_ctr_gpu
+├── speck64_ecb_cpu
+├── speck64_ecb_gpu
+├── speck64_ctr_gpu
+├── aes_ecb_cpu
+├── aes_ecb_gpu
+├── aes_ctr_gpu
 ├── modes_test
+├── cpu_bench
 └── CMakeFiles/
 
 run_outputs/
 ├── cmake_output.log
 ├── make_output.log
-├── present80_cpu_output.log
-├── present80_gpu_output.log
-├── speck64_cpu_output.log
-├── speck64_gpu_output.log
-├── aes_cpu_output.log
-├── aes_gpu_output.log
-└── modes_test_output.log
+├── present80_ecb_cpu_output.log
+├── present80_ecb_gpu_output.log
+├── present80_ctr_gpu_output.log
+├── speck64_ecb_cpu_output.log
+├── speck64_ecb_gpu_output.log
+├── speck64_ctr_gpu_output.log
+├── aes_ecb_cpu_output.log
+├── aes_ecb_gpu_output.log
+├── aes_ctr_gpu_output.log
+├── modes_test_output.log
+└── cpu_bench_output.log
 ```
 
 ## Notes

@@ -12,48 +12,48 @@ n_trials_per_size: 5
 [SUCCESS] All 128 blocks verified.
 encryption_ms_mean:   0.0233
 encryption_ms_stddev: 0.0000
-encryption_MBps:      43.9162
+encryption_MBps:      43.9300
 decryption_ms_mean:   0.0234
 decryption_ms_stddev: 0.0004
-decryption_MBps:      43.6921
+decryption_MBps:      43.7043
 
 
 === gpu_sweep[64KB] size: 8192 blocks ===
 [SUCCESS] All 8192 blocks verified.
-encryption_ms_mean:   0.0422
+encryption_ms_mean:   0.0421
 encryption_ms_stddev: 0.0000
-encryption_MBps:      1554.1949
+encryption_MBps:      1555.3257
 decryption_ms_mean:   0.0415
 decryption_ms_stddev: 0.0000
-decryption_MBps:      1580.2494
+decryption_MBps:      1580.4055
 
 
 === gpu_sweep[1MB] size: 131072 blocks ===
 [SUCCESS] All 131072 blocks verified.
-encryption_ms_mean:   0.1602
-encryption_ms_stddev: 0.0009
-encryption_MBps:      6545.2223
-decryption_ms_mean:   0.1597
-decryption_ms_stddev: 0.0001
-decryption_MBps:      6566.4703
+encryption_ms_mean:   0.1601
+encryption_ms_stddev: 0.0006
+encryption_MBps:      6550.4559
+decryption_ms_mean:   0.1599
+decryption_ms_stddev: 0.0004
+decryption_MBps:      6558.8471
 
 
 === gpu_sweep[16MB] size: 2097152 blocks ===
 [SUCCESS] All 2097152 blocks verified.
-encryption_ms_mean:   2.2431
-encryption_ms_stddev: 0.0005
-encryption_MBps:      7479.4003
-decryption_ms_mean:   2.2460
+encryption_ms_mean:   2.2441
+encryption_ms_stddev: 0.0011
+encryption_MBps:      7476.0942
+decryption_ms_mean:   2.2466
 decryption_ms_stddev: 0.0005
-decryption_MBps:      7469.7245
+decryption_MBps:      7467.7242
 
 
 === gpu_sweep[64MB] size: 8388608 blocks ===
 [SUCCESS] All 8388608 blocks verified.
-encryption_ms_mean:   8.9245
-encryption_ms_stddev: 0.0015
-encryption_MBps:      7519.6440
-decryption_ms_mean:   8.9362
-decryption_ms_stddev: 0.0018
-decryption_MBps:      7509.7510
+encryption_ms_mean:   8.9254
+encryption_ms_stddev: 0.0006
+encryption_MBps:      7518.8352
+decryption_ms_mean:   8.9364
+decryption_ms_stddev: 0.0006
+decryption_MBps:      7509.6109
 

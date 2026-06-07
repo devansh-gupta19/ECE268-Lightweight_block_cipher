@@ -25,51 +25,72 @@ enable_language(CUDA)
 message(STATUS "========================================")
 message(STATUS "Block Cipher - Building All Targets")
 message(STATUS "========================================")
-message(STATUS "Building 8 executables:")
-message(STATUS "  1. present80_cpu")
-message(STATUS "  2. present80_gpu")
-message(STATUS "  3. speck64_cpu")
-message(STATUS "  4. speck64_gpu")
-message(STATUS "  5. aes_cpu")
-message(STATUS "  6. aes_gpu")
-message(STATUS "  7. modes_test")
-message(STATUS "  8. cpu_bench")
+message(STATUS "Building 11 executables:")
+message(STATUS "  1. present80_ecb_cpu")
+message(STATUS "  2. present80_ecb_gpu")
+message(STATUS "  3. present80_ctr_gpu")
+message(STATUS "  4. speck64_ecb_cpu")
+message(STATUS "  5. speck64_ecb_gpu")
+message(STATUS "  6. speck64_ctr_gpu")
+message(STATUS "  7. aes_ecb_cpu")
+message(STATUS "  8. aes_ecb_gpu")
+message(STATUS "  9. aes_ctr_gpu")
+message(STATUS " 10. modes_test")
+message(STATUS " 11. cpu_bench")
 message(STATUS "========================================")
 
-# --- PRESENT80 CPU ---
-add_executable(present80_cpu ./PRESENT80/present80.cpp)
-target_compile_options(present80_cpu PRIVATE -O3 -Wall -std=c++17)
-target_include_directories(present80_cpu PRIVATE ./PRESENT80/)
+# --- PRESENT80 CPU (ECB) ---
+add_executable(present80_ecb_cpu ./PRESENT80/present80.cpp)
+target_compile_options(present80_ecb_cpu PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(present80_ecb_cpu PRIVATE ./PRESENT80/)
 
-# --- PRESENT80 GPU ---
-add_executable(present80_gpu ./PRESENT80/present80.cu)
-set_target_properties(present80_gpu PROPERTIES LANGUAGE CUDA)
-target_compile_options(present80_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
-target_include_directories(present80_gpu PRIVATE ./PRESENT80/)
+# --- PRESENT80 GPU (ECB) ---
+add_executable(present80_ecb_gpu ./PRESENT80/present80_ecb.cu)
+set_target_properties(present80_ecb_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(present80_ecb_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(present80_ecb_gpu PRIVATE ./PRESENT80/)
 
-# --- SPECK64 CPU ---
-add_executable(speck64_cpu ./SPECK64_128/speck64.cpp)
-target_compile_options(speck64_cpu PRIVATE -O3 -Wall -std=c++17)
-target_include_directories(speck64_cpu PRIVATE ./SPECK64_128/)
+# --- PRESENT80 GPU (CTR) ---
+add_executable(present80_ctr_gpu ./PRESENT80/present80_ctr.cu)
+set_target_properties(present80_ctr_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(present80_ctr_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(present80_ctr_gpu PRIVATE ./PRESENT80/)
 
-# --- SPECK64 GPU ---
-add_executable(speck64_gpu ./SPECK64_128/speck64.cu)
-set_target_properties(speck64_gpu PROPERTIES LANGUAGE CUDA)
-target_compile_options(speck64_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
-target_include_directories(speck64_gpu PRIVATE ./SPECK64_128/)
+# --- SPECK64 CPU (ECB) ---
+add_executable(speck64_ecb_cpu ./SPECK64_128/speck64.cpp)
+target_compile_options(speck64_ecb_cpu PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(speck64_ecb_cpu PRIVATE ./SPECK64_128/)
 
-# --- AES CPU ---
-add_executable(aes_cpu ./AES/aes.cpp)
-target_compile_options(aes_cpu PRIVATE -O3 -Wall -std=c++17)
-target_include_directories(aes_cpu PRIVATE ./AES/)
+# --- SPECK64 GPU (ECB) ---
+add_executable(speck64_ecb_gpu ./SPECK64_128/speck64_ecb.cu)
+set_target_properties(speck64_ecb_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(speck64_ecb_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(speck64_ecb_gpu PRIVATE ./SPECK64_128/)
 
-# --- AES GPU ---
-add_executable(aes_gpu ./AES/aes.cu)
-set_target_properties(aes_gpu PROPERTIES LANGUAGE CUDA)
-target_compile_options(aes_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
-target_include_directories(aes_gpu PRIVATE ./AES/)
+# --- SPECK64 GPU (CTR) ---
+add_executable(speck64_ctr_gpu ./SPECK64_128/speck64_ctr.cu)
+set_target_properties(speck64_ctr_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(speck64_ctr_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(speck64_ctr_gpu PRIVATE ./SPECK64_128/)
 
-# --- Modes Test ---
+# --- AES CPU (ECB) ---
+add_executable(aes_ecb_cpu ./AES/aes.cpp)
+target_compile_options(aes_ecb_cpu PRIVATE -O3 -Wall -std=c++17)
+target_include_directories(aes_ecb_cpu PRIVATE ./AES/)
+
+# --- AES GPU (ECB) ---
+add_executable(aes_ecb_gpu ./AES/aes_ecb.cu)
+set_target_properties(aes_ecb_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(aes_ecb_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(aes_ecb_gpu PRIVATE ./AES/)
+
+# --- AES GPU (CTR) ---
+add_executable(aes_ctr_gpu ./AES/aes_ctr.cu)
+set_target_properties(aes_ctr_gpu PROPERTIES LANGUAGE CUDA)
+target_compile_options(aes_ctr_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
+target_include_directories(aes_ctr_gpu PRIVATE ./AES/)
+
+# --- Modes Test (CPU) ---
 add_executable(modes_test modes_test.cpp modes.cpp)
 target_compile_options(modes_test PRIVATE -O3 -Wall -std=c++17)
 target_include_directories(modes_test PRIVATE ./PRESENT80/ ./SPECK64_128/ ./AES/)

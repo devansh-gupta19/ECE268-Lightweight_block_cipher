@@ -10,29 +10,29 @@ n_trials_per_size:          5
 
 === gpu_sweep[1KB] size: 64 blocks ===
 [SUCCESS] All 64 blocks verified.
-encryption_ms_mean:   0.0116
+encryption_ms_mean:   0.0115
 encryption_ms_stddev: 0.0000
-encryption_MBps:      88.6569
-decryption_ms_mean:   0.0112
+encryption_MBps:      88.8573
+decryption_ms_mean:   0.0115
 decryption_ms_stddev: 0.0001
-decryption_MBps:      91.2773
+decryption_MBps:      89.2100
 
 
 === gpu_sweep[64KB] size: 4096 blocks ===
 [SUCCESS] All 4096 blocks verified.
-encryption_ms_mean:   0.0202
+encryption_ms_mean:   0.0201
 encryption_ms_stddev: 0.0000
-encryption_MBps:      3251.8467
+encryption_MBps:      3258.8322
 decryption_ms_mean:   0.0189
 decryption_ms_stddev: 0.0000
-decryption_MBps:      3473.7300
+decryption_MBps:      3471.9280
 
 
 === gpu_sweep[1MB] size: 65536 blocks ===
 [SUCCESS] All 65536 blocks verified.
-encryption_ms_mean:   0.0398
-encryption_ms_stddev: 0.0008
-encryption_MBps:      26374.7589
+encryption_ms_mean:   0.0394
+encryption_ms_stddev: 0.0011
+encryption_MBps:      26580.1437
 decryption_ms_mean:   0.0375
 decryption_ms_stddev: 0.0005
 decryption_MBps:      27978.1409
@@ -40,20 +40,20 @@ decryption_MBps:      27978.1409
 
 === gpu_sweep[16MB] size: 1048576 blocks ===
 [SUCCESS] All 1048576 blocks verified.
-encryption_ms_mean:   0.5164
-encryption_ms_stddev: 0.0007
-encryption_MBps:      32491.0140
-decryption_ms_mean:   0.4766
-decryption_ms_stddev: 0.0005
-decryption_MBps:      35205.5438
+encryption_ms_mean:   0.5168
+encryption_ms_stddev: 0.0010
+encryption_MBps:      32461.2423
+decryption_ms_mean:   0.4764
+decryption_ms_stddev: 0.0004
+decryption_MBps:      35214.5298
 
 
 === gpu_sweep[64MB] size: 4194304 blocks ===
 [SUCCESS] All 4194304 blocks verified.
-encryption_ms_mean:   2.0538
-encryption_ms_stddev: 0.0003
-encryption_MBps:      32675.3860
-decryption_ms_mean:   1.8934
-decryption_ms_stddev: 0.0006
-decryption_MBps:      35444.0239
+encryption_ms_mean:   2.0540
+encryption_ms_stddev: 0.0007
+encryption_MBps:      32671.8231
+decryption_ms_mean:   1.8938
+decryption_ms_stddev: 0.0004
+decryption_MBps:      35436.3578
 

@@ -1,17 +1,17 @@
 === PRESENT-80 modes ===
   CTR-64 roundtrip [PRESENT-80]: PASS
   CBC-64 roundtrip [PRESENT-80]: PASS
-  CTR-64 throughput [PRESENT-80]: 1.40 MB/s
-  CBC-64 throughput [PRESENT-80]: 1.33 MB/s
+  CTR-64 throughput [PRESENT-80]: 1.41 MB/s
+  CBC-64 throughput [PRESENT-80]: 1.34 MB/s
 === SPECK-64/128 modes ===
   CTR-64 roundtrip [SPECK-64]: PASS
   CBC-64 roundtrip [SPECK-64]: PASS
-  CTR-64 throughput [SPECK-64]: 528.69 MB/s
-  CBC-64 throughput [SPECK-64]: 291.00 MB/s
+  CTR-64 throughput [SPECK-64]: 533.92 MB/s
+  CBC-64 throughput [SPECK-64]: 293.64 MB/s
 === AES-128 modes ===
   CTR-128 roundtrip [AES-128]: PASS
   CBC-128 roundtrip [AES-128]: PASS
-  CTR-128 throughput [AES-128]: 21.56 MB/s
-  CBC-128 throughput [AES-128]: 22.08 MB/s
+  CTR-128 throughput [AES-128]: 21.96 MB/s
+  CBC-128 throughput [AES-128]: 22.20 MB/s
 
 ALL MODES TESTS PASSED

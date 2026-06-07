@@ -1,0 +1,54 @@
+FIPS197 AppB: encrypt=PASS  decrypt=PASS
+FIPS197 AppC: encrypt=PASS  decrypt=PASS
+
+=== AES-128 cpu info ===
+block_bytes:       16
+key_bytes:         16
+n_trials_per_size: 5
+
+=== AES-128 cpu sweep ===
+
+=== cpu_sweep[1KB] size: 64 blocks ===
+[SUCCESS] All 64 blocks verified.
+encryption_ms_mean:   0.0430
+encryption_ms_stddev: 0.0000
+encryption_MBps:      23.7965
+decryption_ms_mean:   0.0682
+decryption_ms_stddev: 0.0001
+decryption_MBps:      15.0246
+
+=== cpu_sweep[64KB] size: 4096 blocks ===
+[SUCCESS] All 4096 blocks verified.
+encryption_ms_mean:   2.7440
+encryption_ms_stddev: 0.0031
+encryption_MBps:      23.8837
+decryption_ms_mean:   4.3574
+decryption_ms_stddev: 0.0014
+decryption_MBps:      15.0401
+
+=== cpu_sweep[1MB] size: 65536 blocks ===
+[SUCCESS] All 65536 blocks verified.
+encryption_ms_mean:   43.9707
+encryption_ms_stddev: 0.1947
+encryption_MBps:      23.8472
+decryption_ms_mean:   69.7395
+decryption_ms_stddev: 0.0512
+decryption_MBps:      15.0356
+
+=== cpu_sweep[16MB] size: 1048576 blocks ===
+[SUCCESS] All 1048576 blocks verified.
+encryption_ms_mean:   703.8567
+encryption_ms_stddev: 1.9852
+encryption_MBps:      23.8361
+decryption_ms_mean:   1119.0731
+decryption_ms_stddev: 4.4448
+decryption_MBps:      14.9921
+
+=== cpu_sweep[64MB] size: 4194304 blocks ===
+[SUCCESS] All 4194304 blocks verified.
+encryption_ms_mean:   2811.2064
+encryption_ms_stddev: 2.3792
+encryption_MBps:      23.8719
+decryption_ms_mean:   4467.3745
+decryption_ms_stddev: 4.7071
+decryption_MBps:      15.0220
