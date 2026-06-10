@@ -14,6 +14,17 @@ build.ninja
 .ninja_log
 build/
 
-
 reference/
 *settings.json
+
+# Presentation drafts
+presentation_10min.md
+presentation_2min30sec.md
+
+# IEEE template folder — only track our report source and rendered PDF
+IEEE_Conference_Template/*
+!IEEE_Conference_Template/report.tex
+!IEEE_Conference_Template/report.pdf
+
+
+/*.pdf

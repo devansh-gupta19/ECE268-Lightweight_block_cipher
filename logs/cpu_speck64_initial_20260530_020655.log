@@ -1,6 +1,0 @@
---- SPECK-64/128 Test ---
-Plaintext:  3b726574 7475432d
-Ciphertext: 8c6fa548 454e028b
-Decrypted:  3b726574 7475432d
-
-[SUCCESS] Ciphertext matches the official test vector.
