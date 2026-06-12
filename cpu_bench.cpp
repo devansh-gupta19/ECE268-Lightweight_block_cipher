@@ -107,8 +107,8 @@ struct CipherInfo {
     size_t rk_bytes;
 };
 
-// Benchmark key schedule: 10 batches × 10,000 expansions
-// Returns {us_mean, us_stddev, cycles_mean}
+// Key-schedule microbench: `batches` groups of `per_batch` expansions.
+// Returns per-expansion us mean/stddev and mean cycle count.
 template<typename MakeKey>
 static void bench_keyschedule(MakeKey make_key, int batches, int per_batch,
                                double& us_mean, double& us_std, double& cyc_mean) {
@@ -171,6 +171,7 @@ static void bench_ecb_sweep(EncFn enc_fn, size_t block_bytes) {
     for (int s = 0; s < N_SWEEP; s++) {
         size_t bytes   = SWEEP_BYTES[s];
         size_t nblocks = bytes / block_bytes;
+        // repeat small payloads for a stable timer reading, capped at 100k reps
         size_t N_REPS  = std::min((size_t)100000, MAX_BYTES / bytes);
         // warmup
         for (size_t j = 0; j < nblocks; j++)
