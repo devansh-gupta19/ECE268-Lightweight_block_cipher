@@ -38,7 +38,7 @@ inline double cpu_mhz() {
             if (p != std::string::npos) return std::stod(line.substr(p+1));
         }
     }
-    return 3000.0; // fallback
+    return 3000.0; // fallback when /proc/cpuinfo lists no cpu MHz line
 }
 
 // Trial statistics for repeated benchmark runs
@@ -49,6 +49,7 @@ inline void stats(const std::vector<double>& v, double& mean, double& stddev) {
     stddev = std::sqrt(sq / v.size());
 }
 
+// Median per-call cycles; robust to scheduler and IRQ outliers
 inline uint64_t median_cycles(std::vector<uint64_t>& v) {
     std::sort(v.begin(), v.end());
     return v[v.size()/2];
