@@ -4,6 +4,7 @@
 
 namespace aes_detail {
 
+// GF(2^8) multiply, xtime reduction by 0x1b; used by MixColumns
 static inline uint8_t gmul(uint8_t a, uint8_t b) {
     uint8_t p = 0;
     for (int i = 0; i < 8; i++) {
@@ -18,6 +19,7 @@ static inline uint8_t gmul(uint8_t a, uint8_t b) {
 
 } // namespace aes_detail
 
+// AES-128 reference implementation (FIPS-197), software-only, no AES-NI
 class AES128 {
     uint8_t round_keys[11][16];
 
@@ -138,6 +140,7 @@ public:
     }
 };
 
+// FIPS-197 S-box, inverse S-box, and round constants
 inline const uint8_t AES128::SBOX[256] = {
     0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
     0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
