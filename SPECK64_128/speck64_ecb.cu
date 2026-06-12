@@ -119,9 +119,10 @@ int main()
     const int    N_TRIALS  = 5;
     const int    THREADS   = 256;
 
+    // Payload sweep: 1 KB .. 64 MB, five trials per size (kernel time only)
     const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
     const char*  SWEEP_LABELS[5] = {"1KB","64KB","1MB","16MB","64MB"};
-    const int    N_MAX     = (int)(SWEEP_BYTES[4] / 8);  // 8,388,608 blocks (64 MB)
+    const int    N_MAX     = (int)(SWEEP_BYTES[4] / 8);  // 8,388,608 blocks at 64 MB
 
     // ── GPU info block ────────────────────────────────────────────────────
     std::cout << "=== SPECK-64/128 gpu info ===\n";

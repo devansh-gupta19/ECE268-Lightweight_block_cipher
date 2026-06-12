@@ -66,7 +66,7 @@ int main() {
     const int    N_SWEEP  = 5;
     const int    N_TRIALS = 5;
  
-    // Mirror exactly the same sweep sizes as the CUDA benchmark
+    // Sweep sizes aligned with present80_ecb.cu / present80_ctr.cu
     const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
     const char*  SWEEP_LABELS[5] = {"1KB", "64KB", "1MB", "16MB", "64MB"};
     const int    N_MAX = (int)(SWEEP_BYTES[4] / 8);   // 8,388,608 blocks (64 MB)
@@ -103,8 +103,7 @@ int main() {
  
         std::cout << "\n=== cpu_sweep[" << SWEEP_LABELS[s] << "] size: " << n << " blocks ===\n";
  
-        // Run the batch 100× for inputs smaller than 1 MB to dilute the
-        // overhead of clock_gettime and OS scheduling jitter, then divide.
+        // Repeat small sweeps to average out timer overhead (< 1 MB only)
         int iters = (SWEEP_BYTES[s] < 1024 * 1024) ? 100 : 1;
  
         double enc_ms_v[N_TRIALS], dec_ms_v[N_TRIALS];

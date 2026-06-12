@@ -22,7 +22,7 @@
 // Volatile sink prevents compiler from eliding key-schedule construction
 static volatile uint64_t g_ks_sink = 0;
 
-// Input-size sweep parameters
+// Shared input-size sweep: 1 KB .. 64 MB (matches per-cipher cpu/gpu executables)
 static const size_t SWEEP_BYTES[]  = {1024, 65536, 1048576, 16777216, 67108864};
 static const char*  SWEEP_LABELS[] = {"1KB", "64KB", "1MB", "16MB", "64MB"};
 static const int    N_SWEEP = 5;
@@ -162,10 +162,10 @@ static void bench_bulk_ecb(EncFn enc_fn, size_t block_bytes,
     cpb  = (double)(c1 - c0) / total_bytes;
 }
 
-// Benchmark ECB across 5 input sizes; prints sweep[<SIZE>]_throughput_MBps and _cycles_per_byte
+// ECB sweep: five payload sizes, mean throughput and cycles/byte per size
 template<typename EncFn>
 static void bench_ecb_sweep(EncFn enc_fn, size_t block_bytes) {
-    const size_t MAX_BYTES = SWEEP_BYTES[N_SWEEP - 1]; // 64 MB
+    const size_t MAX_BYTES = SWEEP_BYTES[N_SWEEP - 1];  // 64 MB upper bound
     std::vector<uint8_t> in(MAX_BYTES, 0xA5), out(MAX_BYTES);
     for (int s = 0; s < N_SWEEP; s++) {
         size_t bytes   = SWEEP_BYTES[s];

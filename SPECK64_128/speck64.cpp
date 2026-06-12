@@ -79,8 +79,7 @@ int main() {
     const int N_SWEEP  = 5;
     const int N_TRIALS = 5;
 
-    // Mirror exactly the same sweep byte-sizes as the CUDA and PRESENT-80 benchmarks.
-    // Each SPECK-64/128 block is 8 bytes (two 32-bit words), so n_blocks = bytes / 8.
+    // Same five sweep sizes as speck64_ecb.cu / speck64_ctr.cu (8 bytes per block)
     const size_t SWEEP_BYTES[5]  = {1024, 65536, 1048576, 16777216, 67108864};
     const char*  SWEEP_LABELS[5] = {"1KB", "64KB", "1MB", "16MB", "64MB"};
     const int    N_MAX = (int)(SWEEP_BYTES[4] / 8);  // 8,388,608 blocks (64 MB)
