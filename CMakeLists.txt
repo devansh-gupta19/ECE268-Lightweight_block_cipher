@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -g")
 
-# --- CUDA Setup ---
+# --- CUDA Setup (native arch, nvcc -O3 for all GPU targets) ---
 find_program(NVCC_EXECUTABLE nvcc PATHS /usr/local/cuda/bin /usr/bin NO_DEFAULT_PATH)
 if(NOT NVCC_EXECUTABLE)
     find_program(NVCC_EXECUTABLE nvcc)
@@ -90,7 +90,7 @@ set_target_properties(aes_ctr_gpu PROPERTIES LANGUAGE CUDA)
 target_compile_options(aes_ctr_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -O3 -Xcompiler -Wall>)
 target_include_directories(aes_ctr_gpu PRIVATE ./AES/)
 
-# --- Modes Test (CPU) ---
+# --- Modes Test (CPU: ECB/CTR/CBC roundtrip per cipher) ---
 add_executable(modes_test modes_test.cpp modes.cpp)
 target_compile_options(modes_test PRIVATE -O3 -Wall -std=c++17)
 target_include_directories(modes_test PRIVATE ./PRESENT80/ ./SPECK64_128/ ./AES/)

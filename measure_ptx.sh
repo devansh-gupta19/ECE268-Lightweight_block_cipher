@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Measures compiled PTX text size, cubin binary size, and SASS instruction count
-# for the PRESENT-80 and SPECK-64 CUDA kernels.
+# Report PTX/cubin size and SASS instruction count for CUDA cipher kernels.
 # Usage: ./measure_ptx.sh
 # Output: printed to stdout and saved to logs/ptx_size_<timestamp>.log
 

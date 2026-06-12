@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Build and run all executables with output logging
-# This script builds all 11 executables and stores their output in separate files
+# Build and run all cipher benchmarks; logs land in run_outputs/
 
 set -e  # Exit on error
 
