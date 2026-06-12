@@ -44,6 +44,7 @@ void cbc64_encrypt(const uint8_t* in, uint8_t* out, size_t len,
     }
 }
 
+// CBC decrypt is parallelizable: each block depends on prior ciphertext, not prior plaintext
 void cbc64_decrypt(const uint8_t* in, uint8_t* out, size_t len,
                    const uint8_t iv[8], const void* rk, Dec64Fn dec) {
     uint8_t prev[8], temp[8];
@@ -85,7 +86,7 @@ void ctr128_decrypt(const uint8_t* in, uint8_t* out, size_t len,
 }
 
 // ============================================================
-// CBC-128
+// CBC-128: 16-byte IV, sequential chaining on encrypt
 // ============================================================
 
 void cbc128_encrypt(const uint8_t* in, uint8_t* out, size_t len,
