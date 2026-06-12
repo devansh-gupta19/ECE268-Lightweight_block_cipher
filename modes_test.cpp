@@ -19,10 +19,7 @@
 // Cipher adapter wrappers
 // ============================================================
 
-// --- PRESENT-80 adapters ---
-// We use a single global instance keyed with the test key
-// to avoid passing key material through the void* (simplicity).
-// The void* rk is a pointer to a Present80 instance.
+// PRESENT-80: void* rk points at a Present80 instance (test key)
 
 static void present_enc(const uint8_t in[8], uint8_t out[8], const void* rk) {
     const Present80* c = static_cast<const Present80*>(rk);
@@ -44,8 +41,7 @@ static void present_dec(const uint8_t in[8], uint8_t out[8], const void* rk) {
     std::memcpy(out, &pt, 8);
 }
 
-// --- SPECK-64/128 adapters ---
-// void* rk is a pointer to Speck64_128
+// SPECK-64/128: void* rk points at a Speck64_128 instance
 
 static void speck_enc(const uint8_t in[8], uint8_t out[8], const void* rk) {
     const Speck64_128* c = static_cast<const Speck64_128*>(rk);
@@ -68,8 +64,7 @@ static void speck_dec(const uint8_t in[8], uint8_t out[8], const void* rk) {
     std::memcpy(out+4, &pt[1], 4);
 }
 
-// --- AES-128 adapters ---
-// void* rk is a pointer to AES128
+// AES-128: void* rk points at an AES128 instance
 
 static void aes_enc(const uint8_t in[16], uint8_t out[16], const void* rk) {
     const AES128* c = static_cast<const AES128*>(rk);

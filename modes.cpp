@@ -3,9 +3,7 @@
 #include <cstring>
 #include <algorithm>
 
-// ============================================================
-// CTR-64
-// ============================================================
+// CTR-64 keystream: encrypt counter blocks, XOR plaintext
 
 void ctr64_encrypt(const uint8_t* in, uint8_t* out, size_t len,
                    const uint8_t nonce[4], const void* rk, Enc64Fn enc) {
@@ -32,9 +30,7 @@ void ctr64_decrypt(const uint8_t* in, uint8_t* out, size_t len,
     ctr64_encrypt(in, out, len, nonce, rk, enc);
 }
 
-// ============================================================
-// CBC-64
-// ============================================================
+// CBC-64: XOR plaintext with prior ciphertext block before encrypt
 
 void cbc64_encrypt(const uint8_t* in, uint8_t* out, size_t len,
                    const uint8_t iv[8], const void* rk, Enc64Fn enc) {
