@@ -100,8 +100,8 @@ __device__ __forceinline__ void d_inv_shift_rows(uint8_t s[16]) {
     t=s[3];  s[3]=s[7];   s[7]=s[11]; s[11]=s[15]; s[15]=t;
 }
 
-// Since b is a compile-time constant during MixColumns unrolling, the compiler 
-// resolves branches automatically, making this highly efficient on the GPU.
+// b is constant after MixColumns inlining, so the per-bit branch folds out
+// and this reduces to a short XOR chain at compile time.
 __device__ __forceinline__ uint8_t d_gmul(uint8_t a, uint8_t b) {
     uint8_t p = 0;
     #pragma unroll

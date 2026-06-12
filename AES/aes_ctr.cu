@@ -138,7 +138,7 @@ void ctr_kernel(const uint8_t* __restrict__ input,
         counter_block[i] = nonce[i];
     }
 
-    // Add thread sequence block index to the 128-bit counter (Big-Endian format)
+    // Per-thread counter = nonce + block index, big-endian add from the LSB
     uint32_t carry = idx;
     for (int i = 15; i >= 0; i--) {
         uint32_t sum = counter_block[i] + carry;
@@ -315,7 +315,7 @@ int main() {
             CUDA_CHECK(cudaEventElapsedTime(&temp_ms, t_start, t_end));
             enc_ms_v[tr] = temp_ms / iters;
 
-            // Decryption (Re-running counter logic path)
+            // CTR is symmetric: the same kernel decrypts (keystream XOR)
             CUDA_CHECK(cudaEventRecord(t_start));
             for (int it = 0; it < iters; it++) {
                 ctr_kernel<<<blks, THREADS>>>(d_cipher, d_decrypted, d_nonce, n_blocks);
