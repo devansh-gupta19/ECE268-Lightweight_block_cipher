@@ -1,5 +1,5 @@
-// cpu_bench.cpp — Comprehensive CPU benchmark for PRESENT-80, SPECK-64, AES-128
-// Outputs structured key=value lines per cipher to stdout.
+// cpu_bench — aggregate CPU metrics for PRESENT-80, SPECK-64/128, AES-128
+// Emits structured key=value lines per cipher to stdout.
 // Compile: g++ -O3 -Wall -std=c++17 -o cpu_bench cpu_bench.cpp modes.cpp
 #include <cstdint>
 #include <cstring>
@@ -19,7 +19,7 @@
 #include "aes128.h"
 #include "modes.h"
 
-// Volatile sink prevents compiler from eliding key-schedule construction
+// Volatile sink forces key-schedule work to retire (prevents DCE)
 static volatile uint64_t g_ks_sink = 0;
 
 // Shared input-size sweep: 1 KB .. 64 MB (matches per-cipher cpu/gpu executables)

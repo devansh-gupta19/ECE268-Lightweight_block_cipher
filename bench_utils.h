@@ -8,7 +8,7 @@
 #include <fstream>
 #include <string>
 
-// RDTSC for x86_64 cycle counting
+// RDTSC cycle counter (x86_64 only; used by cpu_bench microbenchmarks)
 #ifdef __x86_64__
   #include <x86intrin.h>
   inline uint64_t rdtsc() { return __rdtsc(); }
@@ -41,7 +41,7 @@ inline double cpu_mhz() {
     return 3000.0; // fallback
 }
 
-// Compute mean and stddev over a vector
+// Trial statistics for repeated benchmark runs
 inline void stats(const std::vector<double>& v, double& mean, double& stddev) {
     mean = std::accumulate(v.begin(), v.end(), 0.0) / v.size();
     double sq = 0;
