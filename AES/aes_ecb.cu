@@ -281,7 +281,7 @@ int main()
         0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff
     };
 
-    // ── 1. Key schedule on CPU → upload to GPU constant memory ────────────
+    // Host key expansion; round keys uploaded to __constant__ before launch
     uint8_t h_round_keys[11][16];
     generate_aes_round_keys(key, h_round_keys);
     CUDA_CHECK(cudaMemcpyToSymbol(d_round_keys, h_round_keys, 11 * 16 * sizeof(uint8_t)));

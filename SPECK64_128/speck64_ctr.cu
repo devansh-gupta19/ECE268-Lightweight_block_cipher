@@ -124,7 +124,7 @@ int main()
     const uint64_t BASE_PLAINTEXT = 0x3b7265747475432dULL;
     const uint64_t NONCE          = 0xDEADBEEF00000000ULL;
 
-    // ── 1. Key schedule on CPU → upload to GPU constant memory ────────────
+    // Host key expansion; round keys uploaded to __constant__ before launch
     uint32_t h_round_keys[27];
     generate_round_keys(key, h_round_keys);
     CUDA_CHECK(cudaMemcpyToSymbol(d_round_keys, h_round_keys, 27 * sizeof(uint32_t)));
