@@ -46,21 +46,21 @@ A CPU and GPU Comparison of PRESENT-80, SPECK-64/128, and AES-128}
 \maketitle
 
 \begin{abstract}
-Lightweight block ciphers target constrained IoT hardware where AES-128 exceeds area budgets,
-yet their software and GPU throughput characteristics are rarely compared against AES on a single
-controlled platform. This paper presents from-scratch C++ and CUDA implementations of PRESENT-80,
-SPECK-64/128, and AES-128, each validated against official test vectors and benchmarked on an AMD EPYC
-9374F processor with an NVIDIA L40S GPU. On the CPU, SPECK-64/128 sustains 1,132.77 MB/s in ECB
-encryption at 64~MB, AES-128 reaches 23.87~MB/s, and PRESENT-80 reaches 1.4451~MB/s. On the GPU,
-SPECK-64/128 peaks at 356,150~MB/s, AES-128 at 32,672~MB/s, and PRESENT-80 at 7,519~MB/s for ECB
-encryption. GPU speedup over the CPU baseline is approximately 5,203 times for PRESENT-80, 1,384 times
-for AES-128, and 314 times for SPECK-64/128. Counter mode (CTR) GPU throughput matches ECB for
-PRESENT-80 and SPECK-64/128 but falls 37 percent for AES-128, identifying resource contention
-specific to the AES table-driven design on the GPU. Key-schedule analysis shows SPECK-64/128 requires
-only 100 cycles and 108 bytes of device constant memory, versus 8,465 cycles and 288 bytes for
-PRESENT-80 and 360 cycles and 688 bytes for AES-128. The results demonstrate that ARX ciphers such as
-SPECK simultaneously minimize silicon area and maximize software throughput, an alignment that
-hardware-optimized SPN designs do not share.
+Lightweight block ciphers are designed to fit within the stringent silicon area budgets of constrained
+IoT hardware where standards like AES-128 are too heavy. However, the software and GPU throughput
+characteristics of these architectural families are rarely compared against AES on a single, controlled
+platform. This paper presents from-scratch C++ and CUDA implementations of PRESENT-80, SPECK-64/128,
+and AES-128, validated against official test vectors and benchmarked on an AMD EPYC CPU and an NVIDIA
+L40S GPU. Our evaluation shows that the Add-Rotate-XOR (ARX) design of SPECK achieves massive
+performance advantages, leading CPU and GPU encryption throughput at 1,133~MB/s and 356~GB/s,
+respectively, while minimizing key-schedule latency and device memory footprint. Conversely, the
+Substitution-Permutation Network (SPN) design of PRESENT-80 yields the lowest absolute throughput but
+achieves the highest relative GPU speedup (over 5,200$\times$) by mitigating severe CPU-side
+bit-manipulation inefficiencies. Furthermore, we identify a 37\% performance drop specific to AES-128
+in Counter (CTR) mode on the GPU, driven by per-thread register pressure inherent to its
+table-intensive structure. These insights demonstrate that ARX ciphers uniquely align hardware area
+constraints with software and parallel processing scalability, providing critical design guidance for
+secure IoT ecosystems.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -214,8 +214,11 @@ AES-128       & 176 & 512 & 688 & 0.094 & 360   \\
 
 \subsection{Correctness Validation}
 
-All six mode roundtrip tests (ECB, CTR, and CBC for each cipher) pass complete encrypt-decrypt
-verification. No timing data is recorded unless the corresponding test-vector check has passed.
+All six mode roundtrip tests (ECB, CTR, and CBC for each cipher) across the CPU implementations
+pass complete encrypt-decrypt verification. For the GPU, CBC mode was not implemented due to its
+inherent block-to-block data dependencies, which prevent parallelization and conflict with the GPU's
+multi-threaded execution model. No timing data is recorded unless the corresponding validation check
+passes.
 
 \section{Experimental Setup}
 
