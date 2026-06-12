@@ -114,7 +114,7 @@ GF$(2^8)$, and AddRoundKey. The AES S-box and its inverse together occupy 512 by
 constant memory in the GPU implementation.
 
 An ARX cipher applies one round of modular addition, word rotation, and XOR. SPECK-64/128 computes
-$x \leftarrow \mathrm{ROR}(x, 8) + y \oplus k$ and $y \leftarrow \mathrm{ROL}(y, 3) \oplus x$ per
+$x \leftarrow (\mathrm{ROR}(x, 8) + y) \oplus k$ and $y \leftarrow \mathrm{ROL}(y, 3) \oplus x$ per
 round. This requires no lookup tables, so SPECK's GPU device footprint consists entirely of round keys.
 
 Table~\ref{tab:specs} summarizes the cipher parameters.
@@ -268,6 +268,7 @@ Table~\ref{tab:latency}.
 1~MB  & 1.4456 & 1.4282 & 1098.32 & 849.03 & 23.85 & 15.04 \\
 16~MB & 1.4453 & 1.4272 & 1131.34 & 844.62 & 23.84 & 14.99 \\
 64~MB & 1.4451 & 1.4270 & 1132.77 & 850.54 & 23.87 & 15.02 \\
+\hline
 \end{tabular}
 \end{center}
 \end{table*}
