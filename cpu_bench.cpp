@@ -48,6 +48,7 @@ static std::string get_cpu_model() {
         }
     return "unknown";
 }
+// UTC timestamp stamped at the start of each cpu_bench run
 static std::string timestamp_utc() {
     auto now = std::chrono::system_clock::now();
     std::time_t t = std::chrono::system_clock::to_time_t(now);

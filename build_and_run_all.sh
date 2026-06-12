@@ -52,8 +52,9 @@ EXECUTABLES=(
 echo "========================================"
 echo "Running All Executables"
 echo "========================================"
+echo "[*] Run started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-# Run each executable and store output
+# Full benchmark batch: per-cipher sweeps, modes_test, cpu_bench aggregate
 for exe in "${EXECUTABLES[@]}"; do
     if [ -f "$BUILD_DIR/$exe" ]; then
         OUTPUT_FILE="$OUTPUT_DIR/${exe}_output.log"

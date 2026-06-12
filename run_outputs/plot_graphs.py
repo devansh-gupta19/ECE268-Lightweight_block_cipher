@@ -1,7 +1,8 @@
+# Plot throughput curves from final run_outputs logs (report figures)
 import os
 import matplotlib.pyplot as plt
 
-# 1. Define the Dataset
+# Dataset: mean MB/s per sweep size from submission benchmark batch
 sizes = ['1 KB', '64 KB', '1 MB', '16 MB', '64 MB']
 
 data = {
