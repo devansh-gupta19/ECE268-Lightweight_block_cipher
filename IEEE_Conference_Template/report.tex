@@ -298,7 +298,7 @@ sharply between 64~KB and 1~MB as GPU parallelism fills the device, and stabiliz
 SPECK-64/128 shows an elevated peak at 16~MB of 823,317~MB/s in ECB encryption, 2.3 times its
 64~MB value. This behavior is discussed in Section~\ref{sec:disc}.
 
-GPU speedup over the CPU ECB baseline at 64~MB is approximately 5,203 times for PRESENT-80, 1,384
+GPU speedup over the CPU ECB baseline at 64~MB is approximately 5,203 times for PRESENT-80, 1,370
 times for AES-128, and 314 times for SPECK-64/128. The speedup ordering inverts the absolute
 throughput ordering: the cipher with the weakest CPU performance (PRESENT-80) gains the largest
 relative multiplier. Fig.~\ref{fig:speck} shows the full throughput and speedup scaling curves for SPECK-64/128.
@@ -327,7 +327,7 @@ its ECB value of 32,672~MB/s. The same gap appears at 1~MB (CTR 17,536 versus EC
 \hline
 PRESENT-80    & 7,518.84    & 7,509.61    & 7,501.53    & 7,502.71    & $\approx$5,203$\times$ \\
 SPECK-64/128  & 356,149.73  & 486,307.40  & 357,692.65  & 482,192.59  & $\approx$314$\times$   \\
-AES-128       & 32,671.82   & 35,436.36   & 20,626.12   & 20,638.33   & $\approx$1,384$\times$ \\
+AES-128       & 32,671.82   & 35,436.36   & 20,626.12   & 20,638.33   & $\approx$1,370$\times$ \\
 \hline
 \end{tabular}
 \end{center}
